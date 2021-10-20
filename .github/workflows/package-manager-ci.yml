@@ -1,0 +1,65 @@
+name: package-manager-ci
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  pnpm:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        # Maintenance and active LTS
+        node-version: [10, 12, 14, 16]
+        os: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js
+        uses: actions/setup-node@v2.4.0
+        id: setup_node
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install with pnpm
+        id: install_package_manager
+        run: |
+          curl -L https://unpkg.com/@pnpm/self-installer | node
+          pnpm install
+
+      - name: Run tests
+        id: test
+        run: |
+          pnpm run test
+
+  yarn:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        # Maintenance and active LTS
+        node-version: [10, 12, 14, 16]
+        os: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js
+        id: setup_node
+        uses: actions/setup-node@v2.4.0
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install with yarn
+        id: install_package_manager
+        run: |
+          curl -o- -L https://yarnpkg.com/install.sh | bash
+          yarn install --ignore-engines
+
+      - name: Run tests
+        id: test
+        run: |
+          yarn run test
