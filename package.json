@@ -20,5 +20,8 @@
     "typescript": "^4.4.4",
     "uri-js": "^4.4.1"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "tap": {
+    "check-coverage": false
+  }
 }
