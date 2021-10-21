@@ -1,5 +1,5 @@
-const punycode = require('punycode')
-const { pctDecChars, pctEncChar, normalizeIPv6, normalizeIPv4, removeDotSegments, recomposeAuthority, normalizeComponentEncoding } = require('./utils')
+const URL = require('url')
+const { pctDecChars, normalizeIPv6, normalizeIPv4, removeDotSegments, recomposeAuthority, normalizeComponentEncoding } = require('./utils')
 const SCHEMES = require('./schemes')
 
 function normalize (uri, options) {
@@ -108,17 +108,17 @@ function serialize (components, options) {
 
     // if host component is a domain name
     /* else */ if (options.domainHost || (schemeHandler && schemeHandler.domainHost)) {
-      // convert IDN via punycode
       try {
-        components.host = (!options.iri ? punycode.toASCII(components.host.replace(protocol.PCT_ENCODED, pctDecChars).toLowerCase()) : punycode.toUnicode(components.host))
+        components.host = (!options.iri ? URL.toASCII(components.host.toLowerCase()) : URL.toUnicode(components.host))
+        // components.host = (!options.iri ? URL.toASCII(components.host.replace(protocol.PCT_ENCODED, pctDecChars).toLowerCase()) : URL.toUnicode(components.host))
       } catch (e) {
-        components.error = components.error || "Host's domain name can not be converted to " + (!options.iri ? 'ASCII' : 'Unicode') + ' via punycode: ' + e
+        components.error = components.error || "Host's domain name can not be converted to " + (!options.iri ? 'ASCII' : 'Unicode') + ' : ' + e
       }
     }
   }
 
   // normalize encoding
-  normalizeComponentEncoding(components, protocol)
+  normalizeComponentEncoding(components, {})
 
   if (options.reference !== 'suffix' && components.scheme) {
     uriTokens.push(components.scheme)
@@ -164,34 +164,102 @@ function serialize (components, options) {
   return uriTokens.join()
 }
 
-function parse (uri, options) {
-// const protocol = (options.iri ? IRI_PROTOCOL : URI_PROTOCOL)
-  const protocol = true
+const URI_PARSE = /^(?:([^:\/?#]+):)?(?:\/\/((?:([^\/?#@]*)@)?(\[[^\/?#\]]+\]|[^\/?#:]*)(?:\:(\d*))?))?([^?#]*)(?:\?([^#]*))?(?:#((?:.|\n|\r)*))?/i
+const NO_MATCH_IS_UNDEFINED = ('').match(/(){0}/)[1] === undefined
+
+function parse (uri, opts) {
+  const options = Object.assign({}, opts)
+  // const protocol = (options.iri ? IRI_PROTOCOL : URI_PROTOCOL)
   const parsed = {
-    error: undefined,
     scheme: undefined,
-    userinfo: '',
+    userinfo: undefined,
     host: '',
     port: undefined,
     path: '',
     query: undefined,
     fragment: undefined
   }
+  if (options.reference === 'suffix') uri = (options.scheme ? options.scheme + ':' : '') + '//' + uri
 
-  if (parsed.scheme === undefined && parsed.userinfo === undefined && parsed.host === undefined && parsed.port === undefined && !parsed.path && parsed.query === undefined) {
-    parsed.reference = 'same-document'
-  } else if (parsed.scheme === undefined) {
-    parsed.reference = 'relative'
-  } else if (parsed.fragment === undefined) {
-    parsed.reference = 'absolute'
+  const matches = uri.match(URI_PARSE)
+
+  if (matches) {
+    if (NO_MATCH_IS_UNDEFINED) {
+      // store each component
+      parsed.scheme = matches[1]
+      parsed.userinfo = matches[3]
+      parsed.host = matches[4]
+      parsed.port = parseInt(matches[5], 10)
+      parsed.path = matches[6] || ''
+      parsed.query = matches[7]
+      parsed.fragment = matches[8]
+
+      // fix port number
+      if (isNaN(parsed.port)) {
+        parsed.port = matches[5]
+      }
+    } else { // IE FIX for improper RegExp matching
+      // store each component
+      parsed.scheme = matches[1] || undefined
+      parsed.userinfo = (uri.indexOf('@') !== -1 ? matches[3] : undefined)
+      parsed.host = (uri.indexOf('//') !== -1 ? matches[4] : undefined)
+      parsed.port = parseInt(matches[5], 10)
+      parsed.path = matches[6] || ''
+      parsed.query = (uri.indexOf('?') !== -1 ? matches[7] : undefined)
+      parsed.fragment = (uri.indexOf('#') !== -1 ? matches[8] : undefined)
+
+      // fix port number
+      if (isNaN(parsed.port)) {
+        parsed.port = (uri.match(/\/\/(?:.|\n)*:(?:\/|\?|#|$)/) ? matches[4] : undefined)
+      }
+    }
+    if (parsed.host) {
+      const ipv4result = normalizeIPv4(parsed.host)
+      parsed.host = normalizeIPv6(ipv4result.host, { isIPV4: ipv4result.isIPV4 })
+    }
+    if (parsed.scheme === undefined && parsed.userinfo === undefined && parsed.host === undefined && parsed.port === undefined && !parsed.path && parsed.query === undefined) {
+      parsed.reference = 'same-document'
+    } else if (parsed.scheme === undefined) {
+      parsed.reference = 'relative'
+    } else if (parsed.fragment === undefined) {
+      parsed.reference = 'absolute'
+    } else {
+      parsed.reference = 'uri'
+    }
+
+    // check for reference errors
+    if (options.reference && options.reference !== 'suffix' && options.reference !== parsed.reference) {
+      parsed.error = parsed.error || 'URI is not a ' + options.reference + ' reference.'
+    }
+
+    // find scheme handler
+    const schemeHandler = SCHEMES[(options.scheme || parsed.scheme || '').toLowerCase()]
+
+    // check if scheme can't handle IRIs
+    if (!options.unicodeSupport && (!schemeHandler || !schemeHandler.unicodeSupport)) {
+      // if host component is a domain name
+      if (parsed.host && (options.domainHost || (schemeHandler && schemeHandler.domainHost))) {
+        // convert Unicode IDN -> ASCII IDN
+        try {
+          parsed.host = URL.domainToASCII(parsed.host.toLowerCase())
+        } catch (e) {
+          parsed.error = parsed.error || "Host's domain name can not be converted to ASCII: " + e
+        }
+      }
+      // convert IRI -> URI
+    }
+    normalizeComponentEncoding(parsed)
+
+    // perform scheme specific parsing
+    if (schemeHandler && schemeHandler.parse) {
+      schemeHandler.parse(parsed, options)
+    }
+    if (parsed.host && parsed.host.length && parsed.host[0] === '[' && parsed.host[parsed.host.length - 1] === ']') {
+      parsed.host = parsed.host.substr(1).slice(0, -1)
+    }
   } else {
-    parsed.reference = 'uri'
+    parsed.error = parsed.error || 'URI can not be parsed.'
   }
-
-  if (parsed.host) {
-    parsed.host = normalizeIPv6(normalizeIPv4(parsed.host, protocol), protocol)
-  }
-
   return parsed
 }
 

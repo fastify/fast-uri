@@ -8,22 +8,22 @@ const urijs = require('uri-js')
 fastifyURI.parse('https://example.com')
 urijs.parse('https://example.com')
 
-suite.add('fastifyURI: parse', function () {
+suite.add('fastifyURI: parse domain', function () {
   fastifyURI.parse('https://example.com')
 })
-suite.add('urijs: parse', function () {
+suite.add('urijs: parse domain', function () {
   urijs.parse('https://example.com')
 })
-suite.add('fastifyURI: IPv4', function () {
+suite.add('fastifyURI: parse IPv4', function () {
   fastifyURI.parse('//10.10.10.10')
 })
-suite.add('urijs: IPv4', function () {
+suite.add('urijs: parse IPv4', function () {
   urijs.parse('//10.10.10.10')
 })
-suite.add('fastifyURI: IPv6', function () {
+suite.add('fastifyURI: parse IPv6', function () {
   fastifyURI.parse('//[2001:db8::7]')
 })
-suite.add('urijs: IPv6', function () {
+suite.add('urijs: parse IPv6', function () {
   urijs.parse('//[2001:db8::7]')
 })
 

@@ -1,16 +1,68 @@
-function normalizeIPv4 (host, protocol) {
-  if (findToken(host, '.') < 3) { return host }
-  const matches = host.match(protocol.IPV4ADDRESS) || []
-  const [, address] = matches
+function normalizeIPv4 (host) {
+  if (findToken(host, '.') < 3) { return { host, isIPV4: false } }
+  const matches = host.match(/^(\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/) || []
+  const [address] = matches
+  if (address) {
+    return { host: stripLeadingZeros(address, '.', false), isIPV4: true }
+  } else {
+    return { host, isIPV4: false }
+  }
+}
+
+function normalizeIPv6 (host, opts = {}) {
+  if (findToken(host, ':') < 2) { return host }
+  const matches = host.match(opts.IPV6ADDRESS) || []
+  const [, address, zone] = matches
 
   if (address) {
-    return stripLeadingZeros(address, '.', false)
+    const [last, first] = address.toLowerCase().split('::').reverse()
+    const firstFields = first ? stripLeadingZeros(first, ':', true) : []
+    const lastFields = stripLeadingZeros(last, ':', true)
+    // const isLastFieldIPv4Address = protocol.IPV4ADDRESS.test(lastFields[lastFields.length - 1])
+    const fieldCount = opts.isIPV4 ? 7 : 8
+    const lastFieldsStart = lastFields.length - fieldCount
+    const fields = Array(fieldCount)
+
+    for (let x = 0; x < fieldCount; ++x) {
+      fields[x] = firstFields[x] || lastFields[lastFieldsStart + x] || ''
+    }
+
+    if (opts.isIPV4) {
+      fields[fieldCount - 1] = normalizeIPv4(fields[fieldCount - 1])
+    }
+
+    const allZeroFields = fields.reduce((acc, field, index) => {
+      if (!field || field === '0') {
+        const lastLongest = acc[acc.length - 1]
+        if (lastLongest && lastLongest.index + lastLongest.length === index) {
+          lastLongest.length++
+        } else {
+          acc.push({ index, length: 1 })
+        }
+      }
+      return acc
+    }, [])
+
+    const longestZeroFields = allZeroFields.sort((a, b) => b.length - a.length)[0]
+
+    let newHost
+    if (longestZeroFields && longestZeroFields.length > 1) {
+      const newFirst = fields.slice(0, longestZeroFields.index)
+      const newLast = fields.slice(longestZeroFields.index + longestZeroFields.length)
+      newHost = newFirst.join(':') + '::' + newLast.join(':')
+    } else {
+      newHost = fields.join(':')
+    }
+
+    if (zone) {
+      newHost += '%' + zone
+    }
+
+    return newHost
   } else {
     return host
   }
 }
-
-function normalizeIPv6 () {}
 
 function stripLeadingZeros (str, token, outputArray = false) {
   const outArray = []
@@ -124,24 +176,34 @@ function hasReserved (str) {
   return false
 }
 
-function normalizeComponentEncoding (components, protocol) {
-  function decodeUnreserved (str) {
-    const decStr = pctDecChars(str)
-    return (!hasReserved(str) ? str : decStr)
+function normalizeComponentEncoding (components) {
+  // Scheme has no need to be encoded
+  // if (components.scheme) {
+  //   components.scheme = String(components.scheme)
+  //     .replace(protocol.PCT_ENCODED, decodeUnreserved)
+  //     .toLowerCase()
+  //     .replace(protocol.NOT_SCHEME, '')
+  // }
+  if (components.userinfo !== undefined) {
+    components.userinfo = unescape(components.userinfo)
   }
-
-  //  if (components.scheme) components.scheme = String(components.scheme).replace(protocol.PCT_ENCODED, decodeUnreserved).toLowerCase().replace(protocol.NOT_SCHEME, '')
-  //  if (components.userinfo !== undefined) components.userinfo = String(components.userinfo).replace(protocol.PCT_ENCODED, decodeUnreserved).replace(protocol.NOT_USERINFO, pctEncChar).replace(protocol.PCT_ENCODED, toUpperCase)
-  //  if (components.host !== undefined) components.host = String(components.host).replace(protocol.PCT_ENCODED, decodeUnreserved).toLowerCase().replace(protocol.NOT_HOST, pctEncChar).replace(protocol.PCT_ENCODED, toUpperCase)
-  //  if (components.path !== undefined) components.path = String(components.path).replace(protocol.PCT_ENCODED, decodeUnreserved).replace((components.scheme ? protocol.NOT_PATH : protocol.NOT_PATH_NOSCHEME), pctEncChar).replace(protocol.PCT_ENCODED, toUpperCase)
-  //  if (components.query !== undefined) components.query = String(components.query).replace(protocol.PCT_ENCODED, decodeUnreserved).replace(protocol.NOT_QUERY, pctEncChar).replace(protocol.PCT_ENCODED, toUpperCase)
-  //  if (components.fragment !== undefined) components.fragment = String(components.fragment).replace(protocol.PCT_ENCODED, decodeUnreserved).replace(protocol.NOT_FRAGMENT, pctEncChar).replace(protocol.PCT_ENCODED, toUpperCase)
-
+  if (components.host !== undefined) {
+    components.host = unescape(components.host)
+  }
+  if (components.path !== undefined) {
+    components.path = escape(components.path)
+  }
+  if (components.query !== undefined) {
+    components.query = unescape(components.query)
+  }
+  if (components.fragment !== undefined) {
+    components.fragment = escape(components.fragment)
+  }
   return components
 }
 
 function recomposeAuthority (components, options) {
-  const protocol = (options.iri !== false ? IRI_PROTOCOL : URI_PROTOCOL)
+  const protocol = true // (options.iri !== false ? IRI_PROTOCOL : URI_PROTOCOL)
   const uriTokens = []
 
   if (components.userinfo !== undefined) {
@@ -165,12 +227,15 @@ function recomposeAuthority (components, options) {
 function pctEncChar (chr) {
   const c = chr.charCodeAt(0)
   let e
-
-  if (c < 16) e = '%0' + c.toString(16).toUpperCase()
-  else if (c < 128) e = '%' + c.toString(16).toUpperCase()
-  else if (c < 2048) e = '%' + ((c >> 6) | 192).toString(16).toUpperCase() + '%' + ((c & 63) | 128).toString(16).toUpperCase()
-  else e = '%' + ((c >> 12) | 224).toString(16).toUpperCase() + '%' + (((c >> 6) & 63) | 128).toString(16).toUpperCase() + '%' + ((c & 63) | 128).toString(16).toUpperCase()
-
+  if (c < 16) {
+    e = '%0' + c.toString(16).toUpperCase()
+  } else if (c < 128) {
+    e = '%' + c.toString(16).toUpperCase()
+  } else if (c < 2048) {
+    e = '%' + ((c >> 6) | 192).toString(16).toUpperCase() + '%' + ((c & 63) | 128).toString(16).toUpperCase()
+  } else {
+    e = '%' + ((c >> 12) | 224).toString(16).toUpperCase() + '%' + (((c >> 6) & 63) | 128).toString(16).toUpperCase() + '%' + ((c & 63) | 128).toString(16).toUpperCase()
+  }
   return e
 }
 
@@ -212,7 +277,6 @@ function pctDecChars (str) {
 }
 
 module.exports = {
-  pctEncChar,
   pctDecChars,
   recomposeAuthority,
   normalizeComponentEncoding,
