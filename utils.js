@@ -149,32 +149,30 @@ function removeDotSegments (input) {
   return output.join('')
 }
 
-function hasReserved (str) {
-  const scope = [43, 122]
-  const rangeAlphas = [65, 90] // 'A'.charCodeAt(0), 'Z'.chartCodeAt(0)
-  const rangeLower = [97, 122] // 'a'.charCodeAt(0), 'z'.chartCodeAt(0)
-  const rangeDigit = [48, 57] // '0'.charCodeAt(0), '9'.chartCodeAt(0)
-  const tokens = [43, 45, 46] // '+'.charCodeAt(0), '-'.chartCodeAt(0), '.'.chartCodeAt(0)
-
-  let code
-  const idx = 0
-  while (idx < str.length) {
-    code = str.chartCodeAt()
-    if (code < scope[0] || code > scope[1]) {
-      return true
-    } else if (code >= rangeAlphas[0] || code <= rangeAlphas[1]) {
-      return true
-    } else if (code >= rangeLower[0] || code <= rangeLower[1]) {
-      return true
-    } else if (code >= rangeDigit[0] || code <= rangeDigit[1]) {
-      return true
-    } else if (tokens.includes[code]) {
-      return true
-    }
-  }
-
-  return false
-}
+// function hasReserved (str) {
+//   const scope = [43, 122]
+//   const rangeAlphas = [65, 90] // 'A'.charCodeAt(0), 'Z'.chartCodeAt(0)
+//   const rangeLower = [97, 122] // 'a'.charCodeAt(0), 'z'.chartCodeAt(0)
+//   const rangeDigit = [48, 57] // '0'.charCodeAt(0), '9'.chartCodeAt(0)
+//   const tokens = [43, 45, 46] // '+'.charCodeAt(0), '-'.chartCodeAt(0), '.'.chartCodeAt(0)
+//   let code
+//   const idx = 0
+//   while (idx < str.length) {
+//     code = str.chartCodeAt()
+//     if (code < scope[0] || code > scope[1]) {
+//       return true
+//     } else if (code >= rangeAlphas[0] || code <= rangeAlphas[1]) {
+//       return true
+//     } else if (code >= rangeLower[0] || code <= rangeLower[1]) {
+//       return true
+//     } else if (code >= rangeDigit[0] || code <= rangeDigit[1]) {
+//       return true
+//     } else if (tokens.includes[code]) {
+//       return true
+//     }
+//   }
+//   return false
+// }
 
 function normalizeComponentEncoding (components) {
   // Scheme has no need to be encoded
@@ -224,20 +222,20 @@ function recomposeAuthority (components, options) {
   return uriTokens.length ? uriTokens.join('') : undefined
 };
 
-function pctEncChar (chr) {
-  const c = chr.charCodeAt(0)
-  let e
-  if (c < 16) {
-    e = '%0' + c.toString(16).toUpperCase()
-  } else if (c < 128) {
-    e = '%' + c.toString(16).toUpperCase()
-  } else if (c < 2048) {
-    e = '%' + ((c >> 6) | 192).toString(16).toUpperCase() + '%' + ((c & 63) | 128).toString(16).toUpperCase()
-  } else {
-    e = '%' + ((c >> 12) | 224).toString(16).toUpperCase() + '%' + (((c >> 6) & 63) | 128).toString(16).toUpperCase() + '%' + ((c & 63) | 128).toString(16).toUpperCase()
-  }
-  return e
-}
+// function pctEncChar (chr) {
+//   const c = chr.charCodeAt(0)
+//   let e
+//   if (c < 16) {
+//     e = '%0' + c.toString(16).toUpperCase()
+//   } else if (c < 128) {
+//     e = '%' + c.toString(16).toUpperCase()
+//   } else if (c < 2048) {
+//     e = '%' + ((c >> 6) | 192).toString(16).toUpperCase() + '%' + ((c & 63) | 128).toString(16).toUpperCase()
+//   } else {
+//     e = '%' + ((c >> 12) | 224).toString(16).toUpperCase() + '%' + (((c >> 6) & 63) | 128).toString(16).toUpperCase() + '%' + ((c & 63) | 128).toString(16).toUpperCase()
+//   }
+//   return e
+// }
 
 function pctDecChars (str) {
   let newStr = ''

@@ -1,5 +1,5 @@
 const URL = require('url')
-const { pctDecChars, normalizeIPv6, normalizeIPv4, removeDotSegments, recomposeAuthority, normalizeComponentEncoding } = require('./utils')
+const { normalizeIPv6, normalizeIPv4, removeDotSegments, recomposeAuthority, normalizeComponentEncoding } = require('./utils')
 const SCHEMES = require('./schemes')
 
 function normalize (uri, options) {
@@ -164,7 +164,7 @@ function serialize (components, options) {
   return uriTokens.join()
 }
 
-const URI_PARSE = /^(?:([^:\/?#]+):)?(?:\/\/((?:([^\/?#@]*)@)?(\[[^\/?#\]]+\]|[^\/?#:]*)(?:\:(\d*))?))?([^?#]*)(?:\?([^#]*))?(?:#((?:.|\n|\r)*))?/i
+const URI_PARSE = /^(?:([^:/?#]+):)?(?:\/\/((?:([^/?#@]*)@)?(\[[^/?#\]]+\]|[^/?#:]*)(?::(\d*))?))?([^?#]*)(?:\?([^#]*))?(?:#((?:.|\n|\r)*))?/i
 const NO_MATCH_IS_UNDEFINED = ('').match(/(){0}/)[1] === undefined
 
 function parse (uri, opts) {
