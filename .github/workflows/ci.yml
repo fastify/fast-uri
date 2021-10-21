@@ -47,12 +47,12 @@ jobs:
         id: test
         run: npm test
 
-      - name: Coveralls Parallel
-        uses: coverallsapp/github-action@v1.1.2
-        with:
-          github-token: ${{ secrets.github_token }}
-          parallel: true
-          flag-name: run-${{ matrix.node-version }}-${{ matrix.os }}
+      #- name: Coveralls Parallel
+      #  uses: coverallsapp/github-action@v1.1.2
+      #  with:
+      #    github-token: ${{ secrets.github_token }}
+      #    parallel: true
+      #    flag-name: run-${{ matrix.node-version }}-${{ matrix.os }}
 
       - name: Typescript
         id: typescript_test
