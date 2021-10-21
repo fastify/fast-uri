@@ -59,7 +59,7 @@ jobs:
         run: npm run typescript --if-present
 
   coverage:
-    needs: build
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Coveralls Finished
