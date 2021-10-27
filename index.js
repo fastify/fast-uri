@@ -1,3 +1,5 @@
+'use strict'
+
 const URL = require('url')
 const { normalizeIPv6, normalizeIPv4, removeDotSegments, recomposeAuthority, normalizeComponentEncoding } = require('./utils')
 const SCHEMES = require('./schemes')
@@ -92,7 +94,8 @@ function equal (uriA, uriB, options) {
   return uriA === uriB
 }
 
-function serialize (components, options) {
+function serialize (components, opts) {
+  const options = Object.assign({}, opts)
   const uriTokens = []
   // find scheme handler
   const schemeHandler = SCHEMES[(options.scheme || components.scheme || '').toLowerCase()]
@@ -161,7 +164,7 @@ function serialize (components, options) {
     uriTokens.push(components.fragment)
   }
 
-  return uriTokens.join()
+  return uriTokens.join('')
 }
 
 const URI_PARSE = /^(?:([^:/?#]+):)?(?:\/\/((?:([^/?#@]*)@)?(\[[^/?#\]]+\]|[^/?#:]*)(?::(\d*))?))?([^?#]*)(?:\?([^#]*))?(?:#((?:.|\n|\r)*))?/i
@@ -215,7 +218,11 @@ function parse (uri, opts) {
     }
     if (parsed.host) {
       const ipv4result = normalizeIPv4(parsed.host)
-      parsed.host = normalizeIPv6(ipv4result.host, { isIPV4: ipv4result.isIPV4 })
+      if (ipv4result.isIPV4 === false) {
+        parsed.host = normalizeIPv6(ipv4result.host, { isIPV4: false }).host
+      } else {
+        parsed.host = ipv4result.host
+      }
     }
     if (parsed.scheme === undefined && parsed.userinfo === undefined && parsed.host === undefined && parsed.port === undefined && !parsed.path && parsed.query === undefined) {
       parsed.reference = 'same-document'

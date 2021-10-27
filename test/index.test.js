@@ -261,9 +261,205 @@ test('URI parse', (t) => {
   t.equal(components.path, '', 'path')
   t.equal(components.query, undefined, 'query')
   t.equal(components.fragment, undefined, 'fragment')
+
+  // example from RFC 4122
+  // components = URI.parse('urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6')
+  // t.equal(components.error, undefined, 'errors')
+  // t.equal(components.scheme, 'urn', 'scheme')
+  // // t.equal(components.authority, undefined, "authority");
+  // t.equal(components.userinfo, undefined, 'userinfo')
+  // t.equal(components.host, undefined, 'host')
+  // t.equal(components.port, undefined, 'port')
+  // t.equal(components.path, undefined, 'path')
+  // t.equal(components.query, undefined, 'query')
+  // t.equal(components.fragment, undefined, 'fragment')
+  // t.equal(components.nid, 'uuid', 'nid')
+  // t.equal(components.nss, undefined, 'nss')
+  // t.equal(components.uuid, 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6', 'uuid')
+
+  // components = URI.parse('urn:uuid:notauuid-7dec-11d0-a765-00a0c91e6bf6')
+  // t.notSame(components.error, undefined, 'errors')
+
+  // components = URI.parse('urn:foo:a123,456')
+  // t.equal(components.error, undefined, 'errors')
+  // t.equal(components.scheme, 'urn', 'scheme')
+  // // t.equal(components.authority, undefined, "authority");
+  // t.equal(components.userinfo, undefined, 'userinfo')
+  // t.equal(components.host, undefined, 'host')
+  // t.equal(components.port, undefined, 'port')
+  // t.equal(components.path, undefined, 'path')
+  // t.equal(components.query, undefined, 'query')
+  // t.equal(components.fragment, undefined, 'fragment')
+  // t.equal(components.nid, 'foo', 'nid')
+  // t.equal(components.nss, 'a123,456', 'nss')
+
   t.end()
 })
 
+test('URI Serialize', (t) => {
+  let components = {
+    scheme: undefined,
+    userinfo: undefined,
+    host: undefined,
+    port: undefined,
+    path: undefined,
+    query: undefined,
+    fragment: undefined
+  }
+  t.equal(URI.serialize(components), '', 'Undefined Components')
+
+  components = {
+    scheme: '',
+    userinfo: '',
+    host: '',
+    port: 0,
+    path: '',
+    query: '',
+    fragment: ''
+  }
+  t.equal(URI.serialize(components), '//@:0?#', 'Empty Components')
+
+  components = {
+    scheme: 'uri',
+    userinfo: 'foo:bar',
+    host: 'example.com',
+    port: 1,
+    path: 'path',
+    query: 'query',
+    fragment: 'fragment'
+  }
+  t.equal(URI.serialize(components), 'uri://foo:bar@example.com:1/path?query#fragment', 'All Components')
+
+  components = {
+    scheme: 'uri',
+    host: 'example.com',
+    port: '9000'
+  }
+  t.equal(URI.serialize(components), 'uri://example.com:9000', 'String port')
+
+  t.equal(URI.serialize({ path: '//path' }), '/%2Fpath', 'Double slash path')
+  t.equal(URI.serialize({ path: 'foo:bar' }), 'foo%3Abar', 'Colon path')
+  t.equal(URI.serialize({ path: '?query' }), '%3Fquery', 'Query path')
+
+  t.equal(URI.serialize({ host: '10.10.10.10' }), '//10.10.10.10', 'IPv4address')
+
+  // mixed IPv4address & reg-name, example from terion-name (https://github.com/garycourt/uri-js/issues/4)
+  t.equal(URI.serialize({ host: '10.10.10.10.example.com' }), '//10.10.10.10.example.com', 'Mixed IPv4address & reg-name')
+
+  // IPv6address
+  t.equal(URI.serialize({ host: '2001:db8::7' }), '//[2001:db8::7]', 'IPv6 Host')
+  t.equal(URI.serialize({ host: '::ffff:129.144.52.38' }), '//[::ffff:129.144.52.38]', 'IPv6 Mixed Host')
+  t.equal(URI.serialize({ host: '2606:2800:220:1:248:1893:25c8:1946' }), '//[2606:2800:220:1:248:1893:25c8:1946]', 'IPv6 Full Host')
+
+  // IPv6address with zone identifier, RFC 6874
+  t.equal(URI.serialize({ host: 'fe80::a%en1' }), '//[fe80::a%25en1]', 'IPv6 Zone Unescaped Host')
+  t.equal(URI.serialize({ host: 'fe80::a%25en1' }), '//[fe80::a%25en1]', 'IPv6 Zone Escaped Host')
+
+  t.end()
+})
+
+test('WS serialize', (t) => {
+  t.equal(URI.serialize({ scheme: 'ws' }), 'ws:')
+  t.equal(URI.serialize({ scheme: 'ws', host: 'example.com' }), 'ws://example.com')
+  t.equal(URI.serialize({ scheme: 'ws', resourceName: '/' }), 'ws:')
+  t.equal(URI.serialize({ scheme: 'ws', resourceName: '/foo' }), 'ws:/foo')
+  t.equal(URI.serialize({ scheme: 'ws', resourceName: '/foo?bar' }), 'ws:/foo?bar')
+  t.equal(URI.serialize({ scheme: 'ws', secure: false }), 'ws:')
+  t.equal(URI.serialize({ scheme: 'ws', secure: true }), 'wss:')
+  t.equal(URI.serialize({ scheme: 'ws', host: 'example.com', resourceName: '/foo' }), 'ws://example.com/foo')
+  t.equal(URI.serialize({ scheme: 'ws', host: 'example.com', resourceName: '/foo?bar' }), 'ws://example.com/foo?bar')
+  t.equal(URI.serialize({ scheme: 'ws', host: 'example.com', secure: false }), 'ws://example.com')
+  t.equal(URI.serialize({ scheme: 'ws', host: 'example.com', secure: true }), 'wss://example.com')
+  t.equal(URI.serialize({ scheme: 'ws', host: 'example.com', resourceName: '/foo?bar', secure: false }), 'ws://example.com/foo?bar')
+  t.equal(URI.serialize({ scheme: 'ws', host: 'example.com', resourceName: '/foo?bar', secure: true }), 'wss://example.com/foo?bar')
+  t.end()
+})
+
+test('WSS serialize', (t) => {
+  t.equal(URI.serialize({ scheme: 'wss' }), 'wss:')
+  t.equal(URI.serialize({ scheme: 'wss', host: 'example.com' }), 'wss://example.com')
+  t.equal(URI.serialize({ scheme: 'wss', resourceName: '/' }), 'wss:')
+  t.equal(URI.serialize({ scheme: 'wss', resourceName: '/foo' }), 'wss:/foo')
+  t.equal(URI.serialize({ scheme: 'wss', resourceName: '/foo?bar' }), 'wss:/foo?bar')
+  t.equal(URI.serialize({ scheme: 'wss', secure: false }), 'ws:')
+  t.equal(URI.serialize({ scheme: 'wss', secure: true }), 'wss:')
+  t.equal(URI.serialize({ scheme: 'wss', host: 'example.com', resourceName: '/foo' }), 'wss://example.com/foo')
+  t.equal(URI.serialize({ scheme: 'wss', host: 'example.com', resourceName: '/foo?bar' }), 'wss://example.com/foo?bar')
+  t.equal(URI.serialize({ scheme: 'wss', host: 'example.com', secure: false }), 'ws://example.com')
+  t.equal(URI.serialize({ scheme: 'wss', host: 'example.com', secure: true }), 'wss://example.com')
+  t.equal(URI.serialize({ scheme: 'wss', host: 'example.com', resourceName: '/foo?bar', secure: false }), 'ws://example.com/foo?bar')
+  t.equal(URI.serialize({ scheme: 'wss', host: 'example.com', resourceName: '/foo?bar', secure: true }), 'wss://example.com/foo?bar')
+
+  t.end()
+})
+test("URI Resolving", (t)=> {
+	//normal examples from RFC 3986
+	let base = "uri://a/b/c/d;p?q";
+	t.equal(URI.resolve(base, "g:h"), "g:h", "g:h");
+	t.equal(URI.resolve(base, "g:h"), "g:h", "g:h");
+	t.equal(URI.resolve(base, "g"), "uri://a/b/c/g", "g");
+	t.equal(URI.resolve(base, "./g"), "uri://a/b/c/g", "./g");
+	t.equal(URI.resolve(base, "g/"), "uri://a/b/c/g/", "g/");
+	t.equal(URI.resolve(base, "/g"), "uri://a/g", "/g");
+	t.equal(URI.resolve(base, "//g"), "uri://g", "//g");
+	t.equal(URI.resolve(base, "?y"), "uri://a/b/c/d;p?y", "?y");
+	t.equal(URI.resolve(base, "g?y"), "uri://a/b/c/g?y", "g?y");
+	t.equal(URI.resolve(base, "#s"), "uri://a/b/c/d;p?q#s", "#s");
+	t.equal(URI.resolve(base, "g#s"), "uri://a/b/c/g#s", "g#s");
+	t.equal(URI.resolve(base, "g?y#s"), "uri://a/b/c/g?y#s", "g?y#s");
+	t.equal(URI.resolve(base, ";x"), "uri://a/b/c/;x", ";x");
+	t.equal(URI.resolve(base, "g;x"), "uri://a/b/c/g;x", "g;x");
+	t.equal(URI.resolve(base, "g;x?y#s"), "uri://a/b/c/g;x?y#s", "g;x?y#s");
+	t.equal(URI.resolve(base, ""), "uri://a/b/c/d;p?q", "");
+	t.equal(URI.resolve(base, "."), "uri://a/b/c/", ".");
+	t.equal(URI.resolve(base, "./"), "uri://a/b/c/", "./");
+	t.equal(URI.resolve(base, ".."), "uri://a/b/", "..");
+	t.equal(URI.resolve(base, "../"), "uri://a/b/", "../");
+	t.equal(URI.resolve(base, "../g"), "uri://a/b/g", "../g");
+	t.equal(URI.resolve(base, "../.."), "uri://a/", "../..");
+	t.equal(URI.resolve(base, "../../"), "uri://a/", "../../");
+	t.equal(URI.resolve(base, "../../g"), "uri://a/g", "../../g");
+
+	//abnormal examples from RFC 3986
+	t.equal(URI.resolve(base, "../../../g"), "uri://a/g", "../../../g");
+	t.equal(URI.resolve(base, "../../../../g"), "uri://a/g", "../../../../g");
+
+	t.equal(URI.resolve(base, "/./g"), "uri://a/g", "/./g");
+	t.equal(URI.resolve(base, "/../g"), "uri://a/g", "/../g");
+	t.equal(URI.resolve(base, "g."), "uri://a/b/c/g.", "g.");
+	t.equal(URI.resolve(base, ".g"), "uri://a/b/c/.g", ".g");
+	t.equal(URI.resolve(base, "g.."), "uri://a/b/c/g..", "g..");
+	t.equal(URI.resolve(base, "..g"), "uri://a/b/c/..g", "..g");
+
+	t.equal(URI.resolve(base, "./../g"), "uri://a/b/g", "./../g");
+	t.equal(URI.resolve(base, "./g/."), "uri://a/b/c/g/", "./g/.");
+	t.equal(URI.resolve(base, "g/./h"), "uri://a/b/c/g/h", "g/./h");
+	t.equal(URI.resolve(base, "g/../h"), "uri://a/b/c/h", "g/../h");
+	t.equal(URI.resolve(base, "g;x=1/./y"), "uri://a/b/c/g;x=1/y", "g;x=1/./y");
+	t.equal(URI.resolve(base, "g;x=1/../y"), "uri://a/b/c/y", "g;x=1/../y");
+
+	t.equal(URI.resolve(base, "g?y/./x"), "uri://a/b/c/g?y/./x", "g?y/./x");
+	t.equal(URI.resolve(base, "g?y/../x"), "uri://a/b/c/g?y/../x", "g?y/../x");
+	t.equal(URI.resolve(base, "g#s/./x"), "uri://a/b/c/g#s/./x", "g#s/./x");
+	t.equal(URI.resolve(base, "g#s/../x"), "uri://a/b/c/g#s/../x", "g#s/../x");
+
+	t.equal(URI.resolve(base, "uri:g"), "uri:g", "uri:g");
+	t.equal(URI.resolve(base, "uri:g", {tolerant:true}), "uri://a/b/c/g", "uri:g");
+
+	//examples by PAEz
+	t.equal(URI.resolve("//www.g.com/","/adf\ngf"), "//www.g.com/adf%0Agf", "/adf\\ngf");
+	t.equal(URI.resolve("//www.g.com/error\n/bleh/bleh",".."), "//www.g.com/error%0A/", "//www.g.com/error\\n/bleh/bleh");
+  t.end()
+});
+
+test("URN Resolving",(t) => {
+  //example from epoberezkin
+  t.equal(URI.resolve('', 'urn:some:ip:prop'), 'urn:some:ip:prop','urn:some:ip:prop');
+  t.equal(URI.resolve('#', 'urn:some:ip:prop'), 'urn:some:ip:prop','urn:some:ip:prop');
+  t.equal(URI.resolve('urn:some:ip:prop', 'urn:some:ip:prop'), 'urn:some:ip:prop','urn:some:ip:prop');
+  t.equal(URI.resolve('urn:some:other:prop', 'urn:some:ip:prop'), 'urn:some:ip:prop','urn:some:ip:prop');
+  t.end()
+});
 // test('Escape Component', (t) => {
 //   let chr
 //   for (let d = 0; d <= 129; ++d) {
