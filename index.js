@@ -19,6 +19,8 @@ function resolve (baseURI, relativeURI, options) {
 }
 
 function resolveComponents (base, relative, options, skipNormalization) {
+  console.log('base',base)
+  console.log('relative',relative)
   const target = {}
   if (!skipNormalization) {
     base = parse(serialize(base, options), options) // normalize base components

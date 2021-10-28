@@ -7,6 +7,7 @@ const urijs = require('uri-js')
 
 test('compatibility Parse', (t) => {
   const toParse = [
+    '//www.g.com/error\n/bleh/bleh',
     'https://fastify.org',
     '//10.10.10.10',
     '//10.10.000.10',

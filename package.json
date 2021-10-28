@@ -9,6 +9,7 @@
     "test:lint": "standard | snazzy",
     "test:typescript": "tsd",
     "test:unit": "tap -J test/*.test.js",
+    "test:unit:dev" : "tap -J test/*.test.js --coverage-report=html",
     "test": "npm run test:lint && npm run test:unit && npm run test:typescript"
   },
   "devDependencies": {
