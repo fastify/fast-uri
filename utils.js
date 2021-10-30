@@ -182,7 +182,6 @@ function removeDotSegments (input) {
       }
     }
   }
-  console.log('Remove dot segment', output.join(''))
   return output.join('')
 }
 
@@ -212,24 +211,20 @@ function removeDotSegments (input) {
 // }
 
 function normalizeComponentEncoding (components) {
-  // Scheme has no need to be encoded
-  // if (components.scheme) {
-  //   components.scheme = String(components.scheme)
-  //     .replace(protocol.PCT_ENCODED, decodeUnreserved)
-  //     .toLowerCase()
-  //     .replace(protocol.NOT_SCHEME, '')
-  // }
+  if(components.scheme !== undefined) {
+    components.scheme = escape(components.scheme)
+  } 
   if (components.userinfo !== undefined) {
-    components.userinfo = unescape(components.userinfo)
+    components.userinfo = escape(components.userinfo)
   }
   if (components.host !== undefined) {
-    components.host = unescape(components.host)
+    components.host = escape(components.host)
   }
   if (components.path !== undefined) {
     components.path = escape(components.path)
   }
   if (components.query !== undefined) {
-    components.query = unescape(components.query)
+    components.query = escape(components.query)
   }
   if (components.fragment !== undefined) {
     components.fragment = escape(components.fragment)

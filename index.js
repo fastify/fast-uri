@@ -19,8 +19,6 @@ function resolve (baseURI, relativeURI, options) {
 }
 
 function resolveComponents (base, relative, options, skipNormalization) {
-  console.log('base',base)
-  console.log('relative',relative)
   const target = {}
   if (!skipNormalization) {
     base = parse(serialize(base, options), options) // normalize base components
@@ -96,7 +94,20 @@ function equal (uriA, uriB, options) {
   return uriA === uriB
 }
 
-function serialize (components, opts) {
+function serialize (cmpts, opts) {
+  const components = {
+    host: cmpts.host,
+    scheme: cmpts.scheme,
+    userinfo: cmpts.userinfo,
+    port: cmpts.port,
+    path: cmpts.path,
+    query: cmpts.query,
+    fragment: cmpts.fragment,
+    reference: cmpts.reference,
+    resourceName: cmpts.resourceName,
+    secure: cmpts.secure,
+    error: ''
+  }
   const options = Object.assign({}, opts)
   const uriTokens = []
   // find scheme handler
@@ -108,22 +119,26 @@ function serialize (components, opts) {
   if (components.host) {
     // if host component is an IPv6 address
     // if (protocol.IPV6ADDRESS.test(components.host)) {
-    // TODO: normalize IPv6 address as per RFC 5952
-    // }
-
-    // if host component is a domain name
-    /* else */ if (options.domainHost || (schemeHandler && schemeHandler.domainHost)) {
-      try {
-        components.host = (!options.iri ? URL.toASCII(components.host.toLowerCase()) : URL.toUnicode(components.host))
-        // components.host = (!options.iri ? URL.toASCII(components.host.replace(protocol.PCT_ENCODED, pctDecChars).toLowerCase()) : URL.toUnicode(components.host))
-      } catch (e) {
-        components.error = components.error || "Host's domain name can not be converted to " + (!options.iri ? 'ASCII' : 'Unicode') + ' : ' + e
+      // TODO: normalize IPv6 address as per RFC 5952
+      // }
+      
+      // if host component is a domain name
+      /* else */ if (options.domainHost || (schemeHandler && schemeHandler.domainHost)) {
+        try {
+          components.host = (!options.iri ? URL.toASCII(components.host.toLowerCase()) : URL.toUnicode(components.host))
+          // components.host = (!options.iri ? URL.toASCII(components.host.replace(protocol.PCT_ENCODED, pctDecChars).toLowerCase()) : URL.toUnicode(components.host))
+        } catch (e) {
+          components.error = components.error || "Host's domain name can not be converted to " + (!options.iri ? 'ASCII' : 'Unicode') + ' : ' + e
+        }
       }
-    }
+      // components.host = components.host(//,unescape)//unescape(components.host)
   }
 
   // normalize encoding
-  normalizeComponentEncoding(components, {})
+  //normalizeComponentEncoding(components, {})
+  if (components.path !== undefined) {
+    components.path = escape(components.path)
+  }
 
   if (options.reference !== 'suffix' && components.scheme) {
     uriTokens.push(components.scheme)
@@ -257,7 +272,25 @@ function parse (uri, opts) {
       }
       // convert IRI -> URI
     }
-    normalizeComponentEncoding(parsed)
+
+    if (parsed.scheme !== undefined) {
+      parsed.scheme = unescape(parsed.scheme)
+    }
+    if (parsed.userinfo !== undefined) {
+      parsed.userinfo = unescape(parsed.userinfo)
+    }
+    if (parsed.host !== undefined) {
+      parsed.host = unescape(parsed.host)
+    }
+    if (parsed.path !== undefined) {
+      parsed.path = escape(parsed.path)
+    }
+    if (parsed.query !== undefined) {
+      parsed.query = unescape(parsed.query)
+    }
+    if (parsed.fragment !== undefined) {
+      parsed.fragment = escape(parsed.fragment)
+    }
 
     // perform scheme specific parsing
     if (schemeHandler && schemeHandler.parse) {
@@ -273,11 +306,11 @@ function parse (uri, opts) {
 }
 
 function escapeComponent (str, options) {
-  return str
+  return escape(str)
 }
 
 function unescapeComponent (str, options) {
-  return str
+  return unescape(str)
 }
 
 module.exports = {
