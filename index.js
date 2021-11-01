@@ -1,8 +1,8 @@
 'use strict'
 
 const URL = require('url')
-const { normalizeIPv6, normalizeIPv4, removeDotSegments, recomposeAuthority, normalizeComponentEncoding } = require('./utils')
-const SCHEMES = require('./schemes')
+const { normalizeIPv6, normalizeIPv4, removeDotSegments, recomposeAuthority } = require('./lib/utils')
+const SCHEMES = require('./lib/schemes')
 
 function normalize (uri, options) {
   if (typeof uri === 'string') {
@@ -119,23 +119,23 @@ function serialize (cmpts, opts) {
   if (components.host) {
     // if host component is an IPv6 address
     // if (protocol.IPV6ADDRESS.test(components.host)) {
-      // TODO: normalize IPv6 address as per RFC 5952
-      // }
-      
-      // if host component is a domain name
-      /* else */ if (options.domainHost || (schemeHandler && schemeHandler.domainHost)) {
-        try {
-          components.host = (!options.iri ? URL.toASCII(components.host.toLowerCase()) : URL.toUnicode(components.host))
-          // components.host = (!options.iri ? URL.toASCII(components.host.replace(protocol.PCT_ENCODED, pctDecChars).toLowerCase()) : URL.toUnicode(components.host))
-        } catch (e) {
-          components.error = components.error || "Host's domain name can not be converted to " + (!options.iri ? 'ASCII' : 'Unicode') + ' : ' + e
-        }
+    // TODO: normalize IPv6 address as per RFC 5952
+    // }
+
+    // if host component is a domain name
+    /* else */ if (options.domainHost || (schemeHandler && schemeHandler.domainHost)) {
+      try {
+        components.host = (!options.iri ? URL.toASCII(components.host.toLowerCase()) : URL.toUnicode(components.host))
+        // components.host = (!options.iri ? URL.toASCII(components.host.replace(protocol.PCT_ENCODED, pctDecChars).toLowerCase()) : URL.toUnicode(components.host))
+      } catch (e) {
+        components.error = components.error || "Host's domain name can not be converted to " + (!options.iri ? 'ASCII' : 'Unicode') + ' : ' + e
       }
-      // components.host = components.host(//,unescape)//unescape(components.host)
+    }
+    // components.host = components.host(//,unescape)//unescape(components.host)
   }
 
   // normalize encoding
-  //normalizeComponentEncoding(components, {})
+  // normalizeComponentEncoding(components, {})
   if (components.path !== undefined) {
     components.path = escape(components.path)
   }
