@@ -86,7 +86,7 @@ function equal (uriA, uriB, options) {
   } else if (typeof uriA === 'object') {
     uriA = serialize(uriA, options)
   }
-  
+
   if (typeof uriB === 'string') {
     uriB = unescape(uriB)
     uriB = serialize(parse(uriB, options), options)
@@ -312,7 +312,7 @@ function parse (uri, opts) {
 // function escapeComponent (str, options) {
 //   return escape(str)
 // }
-// 
+//
 // function unescapeComponent (str, options) {
 //   return unescape(str)
 // }
@@ -323,7 +323,7 @@ module.exports = {
   resolveComponents,
   equal,
   serialize,
-  parse,
+  parse
   // escapeComponent,
   // unescapeComponent
 }
