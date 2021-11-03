@@ -18,3 +18,9 @@ export interface options {
 }
 
 export function parse(uri: string, opts?: options): URIComponents;
+
+export function serialize(component: URIComponents): string;
+
+export function equal(uriA: string, uriB:string): boolean;
+
+export function resolve(base:string, path:string): string;
