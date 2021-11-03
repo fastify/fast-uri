@@ -81,18 +81,20 @@ function resolveComponents (base, relative, options, skipNormalization) {
 
 function equal (uriA, uriB, options) {
   if (typeof uriA === 'string') {
+    uriA = unescape(uriA)
     uriA = serialize(parse(uriA, options), options)
   } else if (typeof uriA === 'object') {
     uriA = serialize(uriA, options)
   }
-
+  
   if (typeof uriB === 'string') {
+    uriB = unescape(uriB)
     uriB = serialize(parse(uriB, options), options)
   } else if (typeof uriB === 'object') {
     uriB = serialize(uriB, options)
   }
 
-  return uriA === uriB
+  return uriA.toLowerCase() === uriB.toLowerCase()
 }
 
 function serialize (cmpts, opts) {
@@ -307,13 +309,13 @@ function parse (uri, opts) {
   return parsed
 }
 
-function escapeComponent (str, options) {
-  return escape(str)
-}
-
-function unescapeComponent (str, options) {
-  return unescape(str)
-}
+// function escapeComponent (str, options) {
+//   return escape(str)
+// }
+// 
+// function unescapeComponent (str, options) {
+//   return unescape(str)
+// }
 
 module.exports = {
   normalize,
@@ -322,6 +324,6 @@ module.exports = {
   equal,
   serialize,
   parse,
-  escapeComponent,
-  unescapeComponent
+  // escapeComponent,
+  // unescapeComponent
 }
