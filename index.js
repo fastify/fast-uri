@@ -15,7 +15,8 @@ function normalize (uri, options) {
 
 function resolve (baseURI, relativeURI, options) {
   const schemelessOptions = Object.assign({ scheme: 'null' }, options)
-  return serialize(resolveComponents(parse(baseURI, schemelessOptions), parse(relativeURI, schemelessOptions), schemelessOptions, true), schemelessOptions)
+  const resolved = resolveComponents(parse(baseURI, schemelessOptions), parse(relativeURI, schemelessOptions), schemelessOptions, true)
+  return serialize(resolved, { ...schemelessOptions, skipEscape: true })
 }
 
 function resolveComponents (base, relative, options, skipNormalization) {
@@ -133,11 +134,12 @@ function serialize (cmpts, opts) {
     }
     // components.host = components.host(//,unescape)//unescape(components.host)
   }
-
-  // normalize encoding
-  // normalizeComponentEncoding(components, {})
   if (components.path !== undefined) {
-    components.path = escape(components.path)
+    if (!options.skipEscape) {
+      components.path = escape(components.path)
+    } else {
+      components.path = unescape(components.path)
+    }
   }
 
   if (options.reference !== 'suffix' && components.scheme) {
