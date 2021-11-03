@@ -1,7 +1,7 @@
 'use strict'
 
 const URL = require('url')
-const { normalizeIPv6, normalizeIPv4, removeDotSegments, recomposeAuthority } = require('./lib/utils')
+const { normalizeIPv6, normalizeIPv4, removeDotSegments, recomposeAuthority, normalizeComponentEncoding } = require('./lib/utils')
 const SCHEMES = require('./lib/schemes')
 
 function normalize (uri, options) {
@@ -82,16 +82,16 @@ function resolveComponents (base, relative, options, skipNormalization) {
 function equal (uriA, uriB, options) {
   if (typeof uriA === 'string') {
     uriA = unescape(uriA)
-    uriA = serialize(parse(uriA, options), options)
+    uriA = serialize(normalizeComponentEncoding(parse(uriB, options), true), { ...options, skipEscape: true })
   } else if (typeof uriA === 'object') {
-    uriA = serialize(uriA, options)
+    uriA = serialize(normalizeComponentEncoding(uriA, true), { ...options, skipEscape: true })
   }
 
   if (typeof uriB === 'string') {
     uriB = unescape(uriB)
-    uriB = serialize(parse(uriB, options), options)
+    uriB = serialize(normalizeComponentEncoding(parse(uriB, options), true), { ...options, skipEscape: true })
   } else if (typeof uriB === 'object') {
-    uriB = serialize(uriB, options)
+    uriB = serialize(normalizeComponentEncoding(uriB, true), { ...options, skipEscape: true })
   }
 
   return uriA.toLowerCase() === uriB.toLowerCase()

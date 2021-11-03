@@ -22,7 +22,7 @@ test('URI Equals', (t) => {
 test('HTTP Equals', (t) => {
   // test from RFC 2616
   t.equal(URI.equal('http://abc.com:80/~smith/home.html', 'http://abc.com/~smith/home.html'), true)
-  t.equal(URI.equal({ host: 'http://abc.com', port: 80, path: '/~smith/home.html' }, 'http://abc.com/~smith/home.html'), true)
+  t.equal(URI.equal({ scheme: 'http', host: 'abc.com', port: 80, path: '/~smith/home.html' }, 'http://abc.com/~smith/home.html'), true)
   t.equal(URI.equal('http://ABC.com/%7Esmith/home.html', 'http://abc.com/~smith/home.html'), true)
   t.equal(URI.equal('http://ABC.com:/%7esmith/home.html', 'http://abc.com/~smith/home.html'), true)
   t.equal(URI.equal('HTTP://ABC.COM', 'http://abc.com/'), true)
