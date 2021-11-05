@@ -134,7 +134,6 @@ function serialize (cmpts, opts) {
         components.error = components.error || "Host's domain name can not be converted to " + (!options.iri ? 'ASCII' : 'Unicode') + ' : ' + e
       }
     }
-    // components.host = components.host(//,unescape)//unescape(components.host)
   }
   if (components.path !== undefined) {
     if (!options.skipEscape) {
@@ -193,7 +192,6 @@ const NO_MATCH_IS_UNDEFINED = ('').match(/(){0}/)[1] === undefined
 
 function parse (uri, opts) {
   const options = Object.assign({}, opts)
-  // const protocol = (options.iri ? IRI_PROTOCOL : URI_PROTOCOL)
   const parsed = {
     scheme: undefined,
     userinfo: undefined,
@@ -309,14 +307,6 @@ function parse (uri, opts) {
   return parsed
 }
 
-// function escapeComponent (str, options) {
-//   return escape(str)
-// }
-//
-// function unescapeComponent (str, options) {
-//   return unescape(str)
-// }
-
 module.exports = {
   normalize,
   resolve,
@@ -324,6 +314,4 @@ module.exports = {
   equal,
   serialize,
   parse
-  // escapeComponent,
-  // unescapeComponent
 }
