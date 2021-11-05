@@ -1,5 +1,5 @@
 {
-  "name": "@fastify/fast-uri",
+  "name": "fast-uri",
   "version": "0.0.1",
   "main": "index.js",
   "license": "MIT",

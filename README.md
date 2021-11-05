@@ -1,4 +1,4 @@
-# @fastify/fast-uri
+# fast-uri
 
 Dependency free RFC 3986 URI toolbox.
 
