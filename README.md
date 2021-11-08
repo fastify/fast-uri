@@ -5,20 +5,20 @@ Dependency free RFC 3986 URI toolbox.
 ## Benchmarks
 
 ```
-fastURI: parse domain x 1,252,422 ops/sec ±0.28% (97 runs sampled)
-urijs: parse domain x 472,949 ops/sec ±0.10% (100 runs sampled)
-fastURI: parse IPv4 x 2,153,692 ops/sec ±0.26% (99 runs sampled)
-urijs: parse IPv4 x 380,838 ops/sec ±0.08% (101 runs sampled)
-fastURI: parse IPv6 x 882,304 ops/sec ±0.40% (96 runs sampled)
-urijs: parse IPv6 x 289,684 ops/sec ±0.09% (98 runs sampled)
-fastURI: serialize uri x 1,799,121 ops/sec ±0.12% (100 runs sampled)
-urijs: serialize uri x 387,358 ops/sec ±0.41% (100 runs sampled)
-fastURI: serialize IPv6 x 444,688 ops/sec ±0.14% (100 runs sampled)
-urijs: serialize IPv6 x 262,238 ops/sec ±0.50% (97 runs sampled)
-fastURI: serialize ws x 28,989 ops/sec ±0.19% (99 runs sampled)
-urijs: serialize ws x 349,650 ops/sec ±0.08% (95 runs sampled)
-fast-uri: resolve x 343,607 ops/sec ±0.94% (97 runs sampled)
-urijs: resolve x 223,666 ops/sec ±0.44% (93 runs sampled)
+fastURI: parse domain x 1,247,726 ops/sec ±0.32% (97 runs sampled)
+urijs: parse domain x 488,006 ops/sec ±0.11% (97 runs sampled)
+fastURI: parse IPv4 x 2,195,254 ops/sec ±0.19% (98 runs sampled)
+urijs: parse IPv4 x 387,909 ops/sec ±0.13% (97 runs sampled)
+fastURI: parse IPv6 x 884,259 ops/sec ±0.36% (99 runs sampled)
+urijs: parse IPv6 x 289,415 ops/sec ±0.12% (100 runs sampled)
+fastURI: serialize uri x 1,784,977 ops/sec ±0.15% (98 runs sampled)
+urijs: serialize uri x 392,667 ops/sec ±0.37% (96 runs sampled)
+fastURI: serialize IPv6 x 452,999 ops/sec ±0.15% (101 runs sampled)
+urijs: serialize IPv6 x 259,007 ops/sec ±0.59% (93 runs sampled)
+fastURI: serialize ws x 1,439,760 ops/sec ±0.10% (99 runs sampled)
+urijs: serialize ws x 346,635 ops/sec ±0.16% (97 runs sampled)
+fast-uri: resolve x 342,474 ops/sec ±0.97% (99 runs sampled)
+urijs: resolve x 227,312 ops/sec ±0.46% (100 runs sampled)
 ```
 
 ## TODO
@@ -26,5 +26,4 @@ urijs: resolve x 223,666 ops/sec ±0.44% (93 runs sampled)
 - [ ] Support URN
 - [ ] Support MailTo
 - [ ] Be 100% iso compatible with uri-js
-- [ ] Be faster
 - [ ] Add browser test stack

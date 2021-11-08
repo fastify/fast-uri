@@ -113,28 +113,13 @@ function serialize (cmpts, opts) {
   }
   const options = Object.assign({}, opts)
   const uriTokens = []
+
   // find scheme handler
   const schemeHandler = SCHEMES[(options.scheme || components.scheme || '').toLowerCase()]
 
   // perform scheme specific serialization
   if (schemeHandler && schemeHandler.serialize) schemeHandler.serialize(components, options)
 
-  if (components.host) {
-    // if host component is an IPv6 address
-    // if (protocol.IPV6ADDRESS.test(components.host)) {
-    // TODO: normalize IPv6 address as per RFC 5952
-    // }
-
-    // if host component is a domain name
-    /* else */ if (options.domainHost || (schemeHandler && schemeHandler.domainHost)) {
-      try {
-        components.host = (!options.iri ? URL.toASCII(components.host.toLowerCase()) : URL.toUnicode(components.host))
-        // components.host = (!options.iri ? URL.toASCII(components.host.replace(protocol.PCT_ENCODED, pctDecChars).toLowerCase()) : URL.toUnicode(components.host))
-      } catch (e) {
-        components.error = components.error || "Host's domain name can not be converted to " + (!options.iri ? 'ASCII' : 'Unicode') + ' : ' + e
-      }
-    }
-  }
   if (components.path !== undefined) {
     if (!options.skipEscape) {
       components.path = escape(components.path)
