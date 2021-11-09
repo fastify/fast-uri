@@ -82,7 +82,7 @@ function resolveComponents (base, relative, options, skipNormalization) {
 function equal (uriA, uriB, options) {
   if (typeof uriA === 'string') {
     uriA = unescape(uriA)
-    uriA = serialize(normalizeComponentEncoding(parse(uriB, options), true), { ...options, skipEscape: true })
+    uriA = serialize(normalizeComponentEncoding(parse(uriA, options), true), { ...options, skipEscape: true })
   } else if (typeof uriA === 'object') {
     uriA = serialize(normalizeComponentEncoding(uriA, true), { ...options, skipEscape: true })
   }
@@ -171,7 +171,6 @@ function serialize (cmpts, opts) {
     uriTokens.push('#')
     uriTokens.push(components.fragment)
   }
-
   return uriTokens.join('')
 }
 
