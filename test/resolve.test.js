@@ -66,11 +66,11 @@ test('URI Resolving', (t) => {
   t.end()
 })
 
-// test('URN Resolving', (t) => {
-//   // example from epoberezkin
-//   t.equal(URI.resolve('', 'urn:some:ip:prop'), 'urn:some:ip:prop', 'urn:some:ip:prop')
-//   t.equal(URI.resolve('#', 'urn:some:ip:prop'), 'urn:some:ip:prop', 'urn:some:ip:prop')
-//   t.equal(URI.resolve('urn:some:ip:prop', 'urn:some:ip:prop'), 'urn:some:ip:prop', 'urn:some:ip:prop')
-//   t.equal(URI.resolve('urn:some:other:prop', 'urn:some:ip:prop'), 'urn:some:ip:prop', 'urn:some:ip:prop')
-//   t.end()
-// })
+test('URN Resolving', (t) => {
+  // example from epoberezkin
+  t.equal(URI.resolve('', 'urn:some:ip:prop'), 'urn:some:ip:prop', 'urn:some:ip:prop')
+  t.equal(URI.resolve('#', 'urn:some:ip:prop'), 'urn:some:ip:prop', 'urn:some:ip:prop')
+  t.equal(URI.resolve('urn:some:ip:prop', 'urn:some:ip:prop'), 'urn:some:ip:prop', 'urn:some:ip:prop')
+  t.equal(URI.resolve('urn:some:other:prop', 'urn:some:ip:prop'), 'urn:some:ip:prop', 'urn:some:ip:prop')
+  t.end()
+})

@@ -105,6 +105,9 @@ function serialize (cmpts, opts) {
     port: cmpts.port,
     path: cmpts.path,
     query: cmpts.query,
+    nid: cmpts.nid,
+    nss: cmpts.nss,
+    uuid: cmpts.uuid,
     fragment: cmpts.fragment,
     reference: cmpts.reference,
     resourceName: cmpts.resourceName,
@@ -260,23 +263,25 @@ function parse (uri, opts) {
       // convert IRI -> URI
     }
 
-    if (parsed.scheme !== undefined) {
-      parsed.scheme = unescape(parsed.scheme)
-    }
-    if (parsed.userinfo !== undefined) {
-      parsed.userinfo = unescape(parsed.userinfo)
-    }
-    if (parsed.host !== undefined) {
-      parsed.host = unescape(parsed.host)
-    }
-    if (parsed.path !== undefined) {
-      parsed.path = escape(parsed.path)
-    }
-    if (parsed.query !== undefined) {
-      parsed.query = unescape(parsed.query)
-    }
-    if (parsed.fragment !== undefined) {
-      parsed.fragment = escape(parsed.fragment)
+    if (!schemeHandler || (schemeHandler && !schemeHandler.skipNormalize)) {
+      if (parsed.scheme !== undefined) {
+        parsed.scheme = unescape(parsed.scheme)
+      }
+      if (parsed.userinfo !== undefined) {
+        parsed.userinfo = unescape(parsed.userinfo)
+      }
+      if (parsed.host !== undefined) {
+        parsed.host = unescape(parsed.host)
+      }
+      if (parsed.path !== undefined) {
+        parsed.path = escape(parsed.path)
+      }
+      if (parsed.query !== undefined) {
+        parsed.query = unescape(parsed.query)
+      }
+      if (parsed.fragment !== undefined) {
+        parsed.fragment = escape(parsed.fragment)
+      }
     }
 
     // perform scheme specific parsing

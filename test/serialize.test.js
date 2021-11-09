@@ -100,3 +100,45 @@ test('WSS serialize', (t) => {
 
   t.end()
 })
+
+test('URN serialize', (t) => {
+// example from RFC 2141
+  const components = {
+    scheme: 'urn',
+    nid: 'foo',
+    nss: 'a123,456'
+  }
+  t.equal(URI.serialize(components), 'urn:foo:a123,456')
+  // example from RFC 4122
+  let uuidcomponents = {
+    scheme: 'urn',
+    nid: 'uuid',
+    uuid: 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6'
+  }
+  t.equal(URI.serialize(uuidcomponents), 'urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6')
+
+  uuidcomponents = {
+    scheme: 'urn',
+    nid: 'uuid',
+    uuid: 'notauuid-7dec-11d0-a765-00a0c91e6bf6'
+  }
+  t.equal(URI.serialize(uuidcomponents), 'urn:uuid:notauuid-7dec-11d0-a765-00a0c91e6bf6')
+  t.end()
+})
+test('URN NID Override', (t) => {
+  let components = URI.parse('urn:foo:f81d4fae-7dec-11d0-a765-00a0c91e6bf6', { nid: 'uuid' })
+  t.equal(components.error, undefined, 'errors')
+  t.equal(components.scheme, 'urn', 'scheme')
+  t.equal(components.path, undefined, 'path')
+  t.equal(components.nid, 'foo', 'nid')
+  t.equal(components.nss, undefined, 'nss')
+  t.equal(components.uuid, 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6', 'uuid')
+
+  components = {
+    scheme: 'urn',
+    nid: 'foo',
+    uuid: 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6'
+  }
+  t.equal(URI.serialize(components, { nid: 'uuid' }), 'urn:foo:f81d4fae-7dec-11d0-a765-00a0c91e6bf6')
+  t.end()
+})
