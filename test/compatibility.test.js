@@ -24,10 +24,10 @@ test('compatibility Parse', (t) => {
     'wss://example.com/?bar=baz',
     'wss://example.com/chat',
     'wss://example.com/foo?bar=baz',
-    'wss://example.com/?bar=baz'
-    // 'urn:foo:a123,456',
-    // 'urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6',
-    // 'urn:uuid:notauuid-7dec-11d0-a765-00a0c91e6bf6'
+    'wss://example.com/?bar=baz',
+    'urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6',
+    'urn:uuid:notauuid-7dec-11d0-a765-00a0c91e6bf6',
+    'urn:example:%D0%B0123,z456'
     //  'mailto:chris@example.com',
     //  'mailto:infobot@example.com?subject=current-issue',
     //  'mailto:infobot@example.com?body=send%20current-issue',

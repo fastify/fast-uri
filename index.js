@@ -82,7 +82,7 @@ function resolveComponents (base, relative, options, skipNormalization) {
 function equal (uriA, uriB, options) {
   if (typeof uriA === 'string') {
     uriA = unescape(uriA)
-    uriA = serialize(normalizeComponentEncoding(parse(uriB, options), true), { ...options, skipEscape: true })
+    uriA = serialize(normalizeComponentEncoding(parse(uriA, options), true), { ...options, skipEscape: true })
   } else if (typeof uriA === 'object') {
     uriA = serialize(normalizeComponentEncoding(uriA, true), { ...options, skipEscape: true })
   }
@@ -105,6 +105,9 @@ function serialize (cmpts, opts) {
     port: cmpts.port,
     path: cmpts.path,
     query: cmpts.query,
+    nid: cmpts.nid,
+    nss: cmpts.nss,
+    uuid: cmpts.uuid,
     fragment: cmpts.fragment,
     reference: cmpts.reference,
     resourceName: cmpts.resourceName,
@@ -168,7 +171,6 @@ function serialize (cmpts, opts) {
     uriTokens.push('#')
     uriTokens.push(components.fragment)
   }
-
   return uriTokens.join('')
 }
 
@@ -260,23 +262,25 @@ function parse (uri, opts) {
       // convert IRI -> URI
     }
 
-    if (parsed.scheme !== undefined) {
-      parsed.scheme = unescape(parsed.scheme)
-    }
-    if (parsed.userinfo !== undefined) {
-      parsed.userinfo = unescape(parsed.userinfo)
-    }
-    if (parsed.host !== undefined) {
-      parsed.host = unescape(parsed.host)
-    }
-    if (parsed.path !== undefined) {
-      parsed.path = escape(parsed.path)
-    }
-    if (parsed.query !== undefined) {
-      parsed.query = unescape(parsed.query)
-    }
-    if (parsed.fragment !== undefined) {
-      parsed.fragment = escape(parsed.fragment)
+    if (!schemeHandler || (schemeHandler && !schemeHandler.skipNormalize)) {
+      if (parsed.scheme !== undefined) {
+        parsed.scheme = unescape(parsed.scheme)
+      }
+      if (parsed.userinfo !== undefined) {
+        parsed.userinfo = unescape(parsed.userinfo)
+      }
+      if (parsed.host !== undefined) {
+        parsed.host = unescape(parsed.host)
+      }
+      if (parsed.path !== undefined) {
+        parsed.path = escape(parsed.path)
+      }
+      if (parsed.query !== undefined) {
+        parsed.query = unescape(parsed.query)
+      }
+      if (parsed.fragment !== undefined) {
+        parsed.fragment = escape(parsed.fragment)
+      }
     }
 
     // perform scheme specific parsing
