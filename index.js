@@ -188,6 +188,7 @@ function parse (uri, opts) {
     query: undefined,
     fragment: undefined
   }
+  const gotEncoding = uri.indexOf('%') !== -1
   if (options.reference === 'suffix') uri = (options.scheme ? options.scheme + ':' : '') + '//' + uri
 
   const matches = uri.match(URI_PARSE)
@@ -263,22 +264,22 @@ function parse (uri, opts) {
     }
 
     if (!schemeHandler || (schemeHandler && !schemeHandler.skipNormalize)) {
-      if (parsed.scheme !== undefined) {
+      if (gotEncoding && parsed.scheme !== undefined) {
         parsed.scheme = unescape(parsed.scheme)
       }
-      if (parsed.userinfo !== undefined) {
+      if (gotEncoding && parsed.userinfo !== undefined) {
         parsed.userinfo = unescape(parsed.userinfo)
       }
-      if (parsed.host !== undefined) {
+      if (gotEncoding && parsed.host !== undefined) {
         parsed.host = unescape(parsed.host)
       }
-      if (parsed.path !== undefined) {
+      if (parsed.path !== undefined && parsed.path.length) {
         parsed.path = escape(parsed.path)
       }
-      if (parsed.query !== undefined) {
+      if (gotEncoding && parsed.query !== undefined && parsed.query.length) {
         parsed.query = unescape(parsed.query)
       }
-      if (parsed.fragment !== undefined) {
+      if (parsed.fragment !== undefined && parsed.fragment.length) {
         parsed.fragment = escape(parsed.fragment)
       }
     }

@@ -262,8 +262,8 @@ test('URI parse', (t) => {
   t.equal(components.query, undefined, 'query')
   t.equal(components.fragment, undefined, 'fragment')
 
-  // example from RFC 4122
-  components = URI.parse('urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6')
+  // UUID V1
+  components = URI.parse('urn:uuid:b571b0bc-4713-11ec-81d3-0242ac130003')
   t.equal(components.error, undefined, 'errors')
   t.equal(components.scheme, 'urn', 'scheme')
   // t.equal(components.authority, undefined, "authority");
@@ -275,7 +275,11 @@ test('URI parse', (t) => {
   t.equal(components.fragment, undefined, 'fragment')
   t.equal(components.nid, 'uuid', 'nid')
   t.equal(components.nss, undefined, 'nss')
-  t.equal(components.uuid, 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6', 'uuid')
+  t.equal(components.uuid, 'b571b0bc-4713-11ec-81d3-0242ac130003', 'uuid')
+
+  // UUID v4
+  components = URI.parse('urn:uuid:97a32222-89b7-420e-8507-4360723e2c2a')
+  t.equal(components.uuid, '97a32222-89b7-420e-8507-4360723e2c2a', 'uuid')
 
   components = URI.parse('urn:uuid:notauuid-7dec-11d0-a765-00a0c91e6bf6')
   t.notSame(components.error, undefined, 'errors')
