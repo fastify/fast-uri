@@ -9,11 +9,13 @@
     "test:lint": "standard | snazzy",
     "test:typescript": "tsd",
     "test:unit": "tap -J test/*.test.js",
-    "test:unit:dev" : "tap -J test/*.test.js --coverage-report=html",
-    "test": "npm run test:lint && npm run test:unit && npm run test:typescript"
+    "test:unit:dev": "tap -J test/*.test.js --coverage-report=html",
+    "test": "npm run test:lint && npm run test:unit && npm run test:typescript",
+    "test:ci": "npm run test:lint && npm run test:unit -- --cov --coverage-report=lcovonly && npm run test:typescript"
   },
   "devDependencies": {
     "benchmark": "^2.1.4",
+    "coveralls": "^3.1.1",
     "snazzy": "^9.0.0",
     "standard": "^16.0.4",
     "tap": "^15.0.10",
