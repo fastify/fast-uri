@@ -45,7 +45,7 @@ jobs:
       # Unit and lint tests
       - name: Tests
         id: test
-        run: npm test:ci
+        run: npm run test:ci
 
       - name: Coveralls Parallel
         id: coveralls-parallel
