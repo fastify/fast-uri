@@ -1,5 +1,13 @@
 # fast-uri
 
+<div align="center">
+
+[![CI](https://github.com/fastify/fastify/workflows/ci/badge.svg)](https://github.com/fastify/fast-uri/actions/workflows/ci.yml)
+[![Coverage Status](https://coveralls.io/repos/github/fastify/fast-uri/badge.svg?branch=add_coveralls)](https://coveralls.io/github/fastify/fast-uri?branch=add_coveralls)
+[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://standardjs.com/)
+
+</div>
+
 Dependency free RFC 3986 URI toolbox.
 
 ## Benchmarks
