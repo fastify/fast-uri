@@ -12,6 +12,7 @@ test('compatibility Parse', (t) => {
     '//10.10.10.10',
     '//10.10.000.10',
     '//[2001:db8::7%en0]',
+    '//[2001:dbZ::1]:80',
     '//[2001:db8::1]:80',
     '//[2001:db8::001]:80',
     'uri://user:pass@example.com:123/one/two.three?q1=a1&q2=a2#body',
@@ -27,8 +28,11 @@ test('compatibility Parse', (t) => {
     'wss://example.com/?bar=baz',
     'urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6',
     'urn:uuid:notauuid-7dec-11d0-a765-00a0c91e6bf6',
-    'urn:example:%D0%B0123,z456'
-    //  'mailto:chris@example.com',
+    'urn:example:%D0%B0123,z456',
+    '//[2606:2800:220:1:248:1893:25c8:1946:43209]',
+    'http://foo.bar',
+    'http://'
+    //  'mailto:chris@example.com'-203845,
     //  'mailto:infobot@example.com?subject=current-issue',
     //  'mailto:infobot@example.com?body=send%20current-issue',
     //  'mailto:infobot@example.com?body=send%20current-issue%0D%0Asend%20index',

@@ -196,6 +196,10 @@ test('URI parse', (t) => {
   t.equal(components.query, undefined, 'query')
   t.equal(components.fragment, undefined, 'fragment')
 
+  // invalid IPv6
+  components = URI.parse('//[2001:dbZ::7]')
+  t.equal(components.host, '[2001:dbz::7]')
+
   // mixed IPv4address & IPv6address
   components = URI.parse('//[::ffff:129.144.52.38]')
   t.equal(components.error, undefined, 'IPv4address errors')
@@ -297,5 +301,10 @@ test('URI parse', (t) => {
   t.equal(components.nid, 'foo', 'nid')
   t.equal(components.nss, 'a123,456', 'nss')
 
+  components = URI.parse('//[2606:2800:220:1:248:1893:25c8:1946:43209]')
+  t.equal(components.host, '[2606:2800:220:1:248:1893:25c8:1946:43209]')
+
+  components = URI.parse('urn:foo:|\\24fpl')
+  t.equal(components.error, 'URN can not be parsed.')
   t.end()
 })

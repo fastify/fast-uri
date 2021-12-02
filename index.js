@@ -226,7 +226,7 @@ function parse (uri, opts) {
     if (parsed.host) {
       const ipv4result = normalizeIPv4(parsed.host)
       if (ipv4result.isIPV4 === false) {
-        parsed.host = normalizeIPv6(ipv4result.host, { isIPV4: false }).host
+        parsed.host = normalizeIPv6(ipv4result.host, { isIPV4: false }).host.toLowerCase()
       } else {
         parsed.host = ipv4result.host
       }
@@ -287,9 +287,6 @@ function parse (uri, opts) {
     // perform scheme specific parsing
     if (schemeHandler && schemeHandler.parse) {
       schemeHandler.parse(parsed, options)
-    }
-    if (parsed.host && parsed.host.length && parsed.host[0] === '[' && parsed.host[parsed.host.length - 1] === ']') {
-      parsed.host = parsed.host.substr(1).slice(0, -1)
     }
   } else {
     parsed.error = parsed.error || 'URI can not be parsed.'
