@@ -16,6 +16,7 @@ suite.add('urijs: parse domain', function () {
   urijs.parse('https://example.com')
 })
 suite.add('WHATWG URL: parse domain', function () {
+  // eslint-disable-next-line
   new URL('https://example.com')
 })
 suite.add('fast-uri: parse IPv4', function () {
@@ -36,7 +37,8 @@ suite.add('fast-uri: parse URN', function () {
 suite.add('urijs: parse URN', function () {
   urijs.parse('urn:foo:a123,456')
 })
-suite.add('WHATWG URL: parse URN', function (){
+suite.add('WHATWG URL: parse URN', function () {
+  // eslint-disable-next-line
   new URL('urn:foo:a123,456')
 })
 suite.add('fast-uri: parse URN uuid', function () {
