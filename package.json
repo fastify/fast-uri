@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "main": "index.js",
   "license": "MIT",
+  "author": "Vincent Le Goff <vince.legoff@gmail.com> (https://github.com/zekth)",
   "scripts": {
     "bench": "node benchmark.js",
     "lint:fix": "standard --fix",
