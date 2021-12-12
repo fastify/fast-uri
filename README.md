@@ -10,6 +10,87 @@
 
 Dependency free RFC 3986 URI toolbox.
 
+## Usage
+
+## Options
+
+All of the above functions can accept an additional options argument that is an object that can contain one or more of the following properties:
+
+*	`scheme` (string)
+	Indicates the scheme that the URI should be treated as, overriding the URI's normal scheme parsing behavior.
+
+*	`reference` (string)
+	If set to `"suffix"`, it indicates that the URI is in the suffix format and the parser will use the option's `scheme` property to determine the URI's scheme.
+
+*	`tolerant` (boolean, false)
+	If set to `true`, the parser will relax URI resolving rules.
+
+*	`absolutePath` (boolean, false)
+	If set to `true`, the serializer will not resolve a relative `path` component.
+
+*	`unicodeSupport` (boolean, false)
+	If set to `true`, the parser will unescape non-ASCII characters in the parsed output as per [RFC 3987](http://www.ietf.org/rfc/rfc3987.txt).
+
+*	`domainHost` (boolean, false)
+	If set to `true`, the library will treat the `host` component as a domain name, and convert IDNs (International Domain Names) as per [RFC 5891](http://www.ietf.org/rfc/rfc5891.txt).
+
+### Parse
+
+```js
+const uri = require('fast-uri')
+uri.parse('uri://user:pass@example.com:123/one/two.three?q1=a1&q2=a2#body')
+// Output
+{
+  scheme : "uri",
+  userinfo : "user:pass",
+  host : "example.com",
+  port : 123,
+  path : "/one/two.three",
+  query : "q1=a1&q2=a2",
+  fragment : "body"
+}
+```
+
+### Serialize
+
+```js
+const uri = require('fast-uri')
+uri.serialize({scheme : "http", host : "example.com", fragment : "footer"})
+// Output
+"http://example.com/#footer"
+
+```
+
+### Resolve
+
+```js
+const uri = require('fast-uri')
+uri.resolve("uri://a/b/c/d?q", "../../g") 
+// Output
+"uri://a/g"
+```
+
+### Equal
+
+```js
+const uri = require('fast-uri')
+uri.equal("example://a/b/c/%7Bfoo%7D", "eXAMPLE://a/./b/../b/%63/%7bfoo%7d")
+// Output
+true
+```
+
+## Scheme supports
+
+fast-uri supports inserting custom [scheme](http://en.wikipedia.org/wiki/URI_scheme) dependent processing rules. Currently, fast-uri has built in support for the following schemes:
+
+*	http \[[RFC 2616](http://www.ietf.org/rfc/rfc2616.txt)\]
+*	https \[[RFC 2818](http://www.ietf.org/rfc/rfc2818.txt)\]
+*	ws \[[RFC 6455](http://www.ietf.org/rfc/rfc6455.txt)\]
+*	wss \[[RFC 6455](http://www.ietf.org/rfc/rfc6455.txt)\]
+*	urn \[[RFC 2141](http://www.ietf.org/rfc/rfc2141.txt)\]
+*	urn:uuid \[[RFC 4122](http://www.ietf.org/rfc/rfc4122.txt)\]
+
+
 ## Benchmarks
 
 ```
