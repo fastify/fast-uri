@@ -15,11 +15,12 @@ export interface options {
   unicodeSupport?: boolean;
   domainHost?: boolean;
   absolutePath?: boolean;
+  tolerant?:boolean;
 }
 
 export function parse(uri: string, opts?: options): URIComponents;
 
-export function serialize(component: URIComponents): string;
+export function serialize(component: URIComponents, opts?: options): string;
 
 export function equal(uriA: string, uriB:string): boolean;
 
