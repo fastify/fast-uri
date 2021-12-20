@@ -1,10 +1,20 @@
 {
   "name": "fast-uri",
+  "description": "Dependency free RFC 3986 URI toolbox",
   "version": "0.0.1",
   "main": "index.js",
+  "type": "commonjs",
   "types": "index.d.ts",
   "license": "MIT",
   "author": "Vincent Le Goff <vince.legoff@gmail.com> (https://github.com/zekth)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fastify/fast-uri"
+  },
+  "bugs": {
+    "url": "https://github.com/fastify/fast-uri/issues"
+  },
+  "homepage":"https://github.com/fastify/fast-uri",
   "scripts": {
     "bench": "node benchmark.js",
     "lint:fix": "standard --fix",
