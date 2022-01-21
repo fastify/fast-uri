@@ -276,9 +276,6 @@ function parse (uri, opts) {
       if (parsed.path !== undefined && parsed.path.length) {
         parsed.path = escape(parsed.path)
       }
-      if (gotEncoding && parsed.query !== undefined && parsed.query.length) {
-        parsed.query = unescape(parsed.query)
-      }
       if (parsed.fragment !== undefined && parsed.fragment.length) {
         parsed.fragment = escape(parsed.fragment)
       }
