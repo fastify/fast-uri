@@ -31,7 +31,8 @@ test('compatibility Parse', (t) => {
     'urn:example:%D0%B0123,z456',
     '//[2606:2800:220:1:248:1893:25c8:1946:43209]',
     'http://foo.bar',
-    'http://'
+    'http://',
+    '//?json=%7B%22foo%22%3A%22bar%22%7D'
     //  'mailto:chris@example.com'-203845,
     //  'mailto:infobot@example.com?subject=current-issue',
     //  'mailto:infobot@example.com?body=send%20current-issue',
