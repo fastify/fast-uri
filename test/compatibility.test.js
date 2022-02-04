@@ -32,6 +32,8 @@ test('compatibility Parse', (t) => {
     '//[2606:2800:220:1:248:1893:25c8:1946:43209]',
     'http://foo.bar',
     'http://',
+    '#/$defs/stringMap',
+    '#/$defs/string%20Map',
     '//?json=%7B%22foo%22%3A%22bar%22%7D'
     //  'mailto:chris@example.com'-203845,
     //  'mailto:infobot@example.com?subject=current-issue',
