@@ -4,48 +4,55 @@ const fasturi = require('./')
 const urijs = require('uri-js')
 
 const base = 'uri://a/b/c/d;p?q'
+
+const domain = 'https://example.com/foo#bar$fiz'
+const ipv4 = '//10.10.10.10'
+const ipv6 = '//[2001:db8::7]'
+const urn = 'urn:foo:a123,456'
+const urnuuid = 'urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6'
+
 // Initialization as there is a lot to parse at first
 // eg: regexes
-fasturi.parse('https://example.com')
-urijs.parse('https://example.com')
+fasturi.parse(domain)
+urijs.parse(domain)
 
 suite.add('fast-uri: parse domain', function () {
-  fasturi.parse('https://example.com')
+  fasturi.parse(domain)
 })
 suite.add('urijs: parse domain', function () {
-  urijs.parse('https://example.com')
+  urijs.parse(domain)
 })
 suite.add('WHATWG URL: parse domain', function () {
   // eslint-disable-next-line
-  new URL('https://example.com')
+  new URL(domain)
 })
 suite.add('fast-uri: parse IPv4', function () {
-  fasturi.parse('//10.10.10.10')
+  fasturi.parse(ipv4)
 })
 suite.add('urijs: parse IPv4', function () {
-  urijs.parse('//10.10.10.10')
+  urijs.parse(ipv4)
 })
 suite.add('fast-uri: parse IPv6', function () {
-  fasturi.parse('//[2001:db8::7]')
+  fasturi.parse(ipv6)
 })
 suite.add('urijs: parse IPv6', function () {
-  urijs.parse('//[2001:db8::7]')
+  urijs.parse(ipv6)
 })
 suite.add('fast-uri: parse URN', function () {
-  fasturi.parse('urn:foo:a123,456')
+  fasturi.parse(urn)
 })
 suite.add('urijs: parse URN', function () {
-  urijs.parse('urn:foo:a123,456')
+  urijs.parse(urn)
 })
 suite.add('WHATWG URL: parse URN', function () {
   // eslint-disable-next-line
-  new URL('urn:foo:a123,456')
+  new URL(urn)
 })
 suite.add('fast-uri: parse URN uuid', function () {
-  fasturi.parse('urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6')
+  fasturi.parse(urnuuid)
 })
 suite.add('urijs: parse URN uuid', function () {
-  urijs.parse('urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6')
+  urijs.parse(urnuuid)
 })
 suite.add('fast-uri: serialize uri', function () {
   fasturi.serialize({
