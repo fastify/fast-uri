@@ -34,6 +34,7 @@ test('compatibility Parse', (t) => {
     'http://',
     '#/$defs/stringMap',
     '#/$defs/string%20Map',
+    '#/$defs/string Map',
     '//?json=%7B%22foo%22%3A%22bar%22%7D'
     //  'mailto:chris@example.com'-203845,
     //  'mailto:infobot@example.com?subject=current-issue',
