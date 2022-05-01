@@ -102,7 +102,7 @@ urijs: parse IPv4 x 384,705 ops/sec ±0.34% (99 runs sampled)
 WHATWG URL: parse IPv4 NOT SUPPORTED
 fast-uri: parse IPv6 x 923,519 ops/sec ±0.09% (100 runs sampled)
 urijs: parse IPv6 x 289,070 ops/sec ±0.07% (95 runs sampled)
-WHATWG ULR: parse IPv6 NOT SUPPORTED
+WHATWG URL: parse IPv6 NOT SUPPORTED
 fast-uri: parse URN x 2,596,395 ops/sec ±0.42% (98 runs sampled)
 urijs: parse URN x 1,152,412 ops/sec ±0.09% (97 runs sampled)
 WHATWG URL: parse URN x 1,183,307 ops/sec ±0.38% (100 runs sampled)
