@@ -126,6 +126,10 @@ function serialize (cmpts, opts) {
   if (components.path !== undefined) {
     if (!options.skipEscape) {
       components.path = escape(components.path)
+
+      if (components.scheme !== undefined) {
+        components.path = components.path.split('%3A').join(':')
+      }
     } else {
       components.path = unescape(components.path)
     }
