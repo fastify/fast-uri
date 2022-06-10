@@ -111,6 +111,10 @@ test('compatibility serialize', (t) => {
       host: 'example.com',
       resourceName: '/foo?bar',
       secure: true
+    },
+    {
+      scheme: 'scheme',
+      path: 'with:colon'
     }
   ]
   toSerialize.forEach((x) => {
