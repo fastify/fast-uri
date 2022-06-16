@@ -179,7 +179,6 @@ function serialize (cmpts, opts) {
 }
 
 const URI_PARSE = /^(?:([^:/?#]+):)?(?:\/\/((?:([^/?#@]*)@)?(\[[^/?#\]]+\]|[^/?#:]*)(?::(\d*))?))?([^?#]*)(?:\?([^#]*))?(?:#((?:.|\n|\r)*))?/i
-const NO_MATCH_IS_UNDEFINED = ('').match(/(){0}/)[1] === undefined
 
 function parse (uri, opts) {
   const options = Object.assign({}, opts)
@@ -198,34 +197,18 @@ function parse (uri, opts) {
   const matches = uri.match(URI_PARSE)
 
   if (matches) {
-    if (NO_MATCH_IS_UNDEFINED) {
-      // store each component
-      parsed.scheme = matches[1]
-      parsed.userinfo = matches[3]
-      parsed.host = matches[4]
-      parsed.port = parseInt(matches[5], 10)
-      parsed.path = matches[6] || ''
-      parsed.query = matches[7]
-      parsed.fragment = matches[8]
+    // store each component
+    parsed.scheme = matches[1]
+    parsed.userinfo = matches[3]
+    parsed.host = matches[4]
+    parsed.port = parseInt(matches[5], 10)
+    parsed.path = matches[6] || ''
+    parsed.query = matches[7]
+    parsed.fragment = matches[8]
 
-      // fix port number
-      if (isNaN(parsed.port)) {
-        parsed.port = matches[5]
-      }
-    } else { // IE FIX for improper RegExp matching
-      // store each component
-      parsed.scheme = matches[1] || undefined
-      parsed.userinfo = (uri.indexOf('@') !== -1 ? matches[3] : undefined)
-      parsed.host = (uri.indexOf('//') !== -1 ? matches[4] : undefined)
-      parsed.port = parseInt(matches[5], 10)
-      parsed.path = matches[6] || ''
-      parsed.query = (uri.indexOf('?') !== -1 ? matches[7] : undefined)
-      parsed.fragment = (uri.indexOf('#') !== -1 ? matches[8] : undefined)
-
-      // fix port number
-      if (isNaN(parsed.port)) {
-        parsed.port = (uri.match(/\/\/(?:.|\n)*:(?:\/|\?|#|$)/) ? matches[4] : undefined)
-      }
+    // fix port number
+    if (isNaN(parsed.port)) {
+      parsed.port = matches[5]
     }
     if (parsed.host) {
       const ipv4result = normalizeIPv4(parsed.host)
