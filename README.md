@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![CI](https://github.com/fastify/fastify/workflows/ci/badge.svg)](https://github.com/fastify/fast-uri/actions/workflows/ci.yml)
+[![CI](https://github.com/fastify/fast-uri/actions/workflows/ci.yml/badge.svg)](https://github.com/fastify/fast-uri/actions/workflows/ci.yml)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://standardjs.com/)
 
 </div>
