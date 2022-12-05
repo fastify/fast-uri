@@ -4,7 +4,7 @@
   "version": "2.1.0",
   "main": "index.js",
   "type": "commonjs",
-  "types": "index.d.ts",
+  "types": "types/index.d.ts",
   "license": "MIT",
   "author": "Vincent Le Goff <vince.legoff@gmail.com> (https://github.com/zekth)",
   "repository": {

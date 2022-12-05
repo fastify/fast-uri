@@ -278,7 +278,7 @@ function parse (uri, opts) {
   return parsed
 }
 
-module.exports = {
+const fastUri = {
   normalize,
   resolve,
   resolveComponents,
@@ -286,3 +286,7 @@ module.exports = {
   serialize,
   parse
 }
+
+module.exports = fastUri
+module.exports.default = fastUri
+module.exports.fastUri = fastUri
