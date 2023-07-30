@@ -178,6 +178,8 @@ function serialize (cmpts, opts) {
   return uriTokens.join('')
 }
 
+const NON_ASCII_HOST = /[^!"$&'()*+,.;=_`a-z{}~-]/
+
 const URI_PARSE = /^(?:([^:/?#]+):)?(?:\/\/((?:([^/?#@]*)@)?(\[[^/?#\]]+\]|[^/?#:]*)(?::(\d*))?))?([^?#]*)(?:\?([^#]*))?(?:#((?:.|\n|\r)*))?/i
 
 function parse (uri, opts) {
@@ -239,7 +241,7 @@ function parse (uri, opts) {
     // check if scheme can't handle IRIs
     if (!options.unicodeSupport && (!schemeHandler || !schemeHandler.unicodeSupport)) {
       // if host component is a domain name
-      if (parsed.host && (options.domainHost || (schemeHandler && schemeHandler.domainHost))) {
+      if (parsed.host && (options.domainHost || (schemeHandler && schemeHandler.domainHost)) && NON_ASCII_HOST.test(parsed.host)) {
         // convert Unicode IDN -> ASCII IDN
         try {
           parsed.host = URL.domainToASCII(parsed.host.toLowerCase())
