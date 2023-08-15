@@ -178,7 +178,18 @@ function serialize (cmpts, opts) {
   return uriTokens.join('')
 }
 
-const NON_ASCII_HOST = /[^!"$&'()*+,.;=_`a-z{}~-]/
+const hexLookUp = Array.from({ length: 127 }, (v, k) => /[^!"$&'()*+,.;=_`a-z{}~-]/.test(String.fromCharCode(k)))
+
+function nonSimpleDomain (value) {
+  let code = 0
+  for (let i = 0, len = value.length; i < len; ++i) {
+    code = value.charCodeAt(i)
+    if (code > 126 || hexLookUp[code]) {
+      return true
+    }
+  }
+  return false
+}
 
 const URI_PARSE = /^(?:([^:/?#]+):)?(?:\/\/((?:([^/?#@]*)@)?(\[[^/?#\]]+\]|[^/?#:]*)(?::(\d*))?))?([^?#]*)(?:\?([^#]*))?(?:#((?:.|\n|\r)*))?/i
 
@@ -241,7 +252,7 @@ function parse (uri, opts) {
     // check if scheme can't handle IRIs
     if (!options.unicodeSupport && (!schemeHandler || !schemeHandler.unicodeSupport)) {
       // if host component is a domain name
-      if (parsed.host && (options.domainHost || (schemeHandler && schemeHandler.domainHost)) && NON_ASCII_HOST.test(parsed.host)) {
+      if (parsed.host && (options.domainHost || (schemeHandler && schemeHandler.domainHost)) && nonSimpleDomain(parsed.host)) {
         // convert Unicode IDN -> ASCII IDN
         try {
           parsed.host = URL.domainToASCII(parsed.host.toLowerCase())
