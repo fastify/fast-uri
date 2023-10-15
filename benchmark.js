@@ -1,3 +1,5 @@
+'use strict'
+
 const benchmark = require('benchmark')
 const suite = new benchmark.Suite()
 const fasturi = require('./')
