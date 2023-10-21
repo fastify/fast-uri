@@ -160,7 +160,7 @@ function serialize (cmpts, opts) {
     }
 
     if (authority === undefined) {
-      s = s.replace(/^\/\//, '/%2F') // don't allow the path to start with "//"
+      s = s.replace(/^\/\//u, '/%2F') // don't allow the path to start with "//"
     }
 
     uriTokens.push(s)
@@ -178,7 +178,7 @@ function serialize (cmpts, opts) {
   return uriTokens.join('')
 }
 
-const hexLookUp = Array.from({ length: 127 }, (v, k) => /[^!"$&'()*+,.;=_`a-z{}~-]/.test(String.fromCharCode(k)))
+const hexLookUp = Array.from({ length: 127 }, (v, k) => /[^!"$&'()*+,\-.;=_`a-z{}~]/u.test(String.fromCharCode(k)))
 
 function nonSimpleDomain (value) {
   let code = 0
@@ -191,7 +191,7 @@ function nonSimpleDomain (value) {
   return false
 }
 
-const URI_PARSE = /^(?:([^:/?#]+):)?(?:\/\/((?:([^/?#@]*)@)?(\[[^/?#\]]+\]|[^/?#:]*)(?::(\d*))?))?([^?#]*)(?:\?([^#]*))?(?:#((?:.|\n|\r)*))?/i
+const URI_PARSE = /^(?:([^#/:?]+):)?(?:\/\/((?:([^#/?@]*)@)?(\[[^#/?\]]+\]|[^#/:?]*)(?::(\d*))?))?([^#?]*)(?:\?([^#]*))?(?:#((?:.|[\n\r])*))?/u
 
 function parse (uri, opts) {
   const options = Object.assign({}, opts)
