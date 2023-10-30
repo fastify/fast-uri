@@ -1,7 +1,7 @@
 {
   "name": "fast-uri",
   "description": "Dependency free RFC 3986 URI toolbox",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "main": "index.js",
   "type": "commonjs",
   "types": "types/index.d.ts",
@@ -14,7 +14,7 @@
   "bugs": {
     "url": "https://github.com/fastify/fast-uri/issues"
   },
-  "homepage":"https://github.com/fastify/fast-uri",
+  "homepage": "https://github.com/fastify/fast-uri",
   "scripts": {
     "bench": "node benchmark.js",
     "lint:fix": "standard --fix",
