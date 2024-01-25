@@ -9,7 +9,7 @@
   "author": "Vincent Le Goff <vince.legoff@gmail.com> (https://github.com/zekth)",
   "repository": {
     "type": "git",
-    "url": "https://github.com/fastify/fast-uri"
+    "url": "git+https://github.com/fastify/fast-uri.git"
   },
   "bugs": {
     "url": "https://github.com/fastify/fast-uri/issues"
