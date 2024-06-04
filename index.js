@@ -1,6 +1,5 @@
 'use strict'
 
-const URL = require('node:url')
 const { normalizeIPv6, normalizeIPv4, removeDotSegments, recomposeAuthority, normalizeComponentEncoding } = require('./lib/utils')
 const SCHEMES = require('./lib/schemes')
 
