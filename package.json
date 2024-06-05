@@ -1,7 +1,7 @@
 {
   "name": "fast-uri",
   "description": "Dependency free RFC 3986 URI toolbox",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "main": "index.js",
   "type": "commonjs",
   "types": "types/index.d.ts",
@@ -34,8 +34,5 @@
     "tap": "^18.7.2",
     "tsd": "^0.31.0",
     "uri-js": "^4.4.1"
-  },
-  "tap": {
-    "check-coverage": false
   }
 }
