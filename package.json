@@ -33,9 +33,5 @@
     "tap": "^16.0.0",
     "tsd": "^0.31.0",
     "uri-js": "^4.4.1"
-  },
-  "dependencies": {},
-  "tap": {
-    "check-coverage": false
   }
 }
