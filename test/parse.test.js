@@ -174,12 +174,21 @@ test('URI parse', (t) => {
   t.equal(components.query, undefined, 'query')
   t.equal(components.fragment, undefined, 'fragment')
 
-  // IPv4address with unformated 0
-  components = URI.parse('//10.10.000.10')
+  // IPv4address with unformated 0 stay as-is
+  components = URI.parse('//10.10.000.10') // not valid as per https://datatracker.ietf.org/doc/html/rfc5954#section-4.1
   t.equal(components.error, undefined, 'IPv4address errors')
   t.equal(components.scheme, undefined, 'scheme')
   t.equal(components.userinfo, undefined, 'userinfo')
-  t.equal(components.host, '10.10.0.10', 'host')
+  t.equal(components.host, '10.10.000.10', 'host')
+  t.equal(components.port, undefined, 'port')
+  t.equal(components.path, '', 'path')
+  t.equal(components.query, undefined, 'query')
+  t.equal(components.fragment, undefined, 'fragment')
+  components = URI.parse('//01.01.01.01') // not valid in URIs: https://datatracker.ietf.org/doc/html/rfc3986#section-7.4
+  t.equal(components.error, undefined, 'IPv4address errors')
+  t.equal(components.scheme, undefined, 'scheme')
+  t.equal(components.userinfo, undefined, 'userinfo')
+  t.equal(components.host, '01.01.01.01', 'host')
   t.equal(components.port, undefined, 'port')
   t.equal(components.path, '', 'path')
   t.equal(components.query, undefined, 'query')
