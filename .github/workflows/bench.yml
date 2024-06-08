@@ -1,20 +1,13 @@
-name: CI
+name: Benchmark PR
 
 on:
-  push:
-    paths-ignore:
-      - 'docs/**'
-      - '*.md'
-  pull_request:
-    paths-ignore:
-      - 'docs/**'
-      - '*.md'
+  pull_request_target:
+    types: 
+      - labeled
 
 jobs:
-  test:
-    permissions:
-      contents: read
-      pull-requests: write
+  benchmark:
+    if: ${{ github.event.label.name == 'benchmark' }}
     uses: fastify/workflows/.github/workflows/plugins-benchmark-pr.yml@v3
     with:
       npm-script: bench
