@@ -8,6 +8,22 @@ on:
 jobs:
   benchmark:
     if: ${{ github.event.label.name == 'benchmark' }}
-    uses: fastify/workflows/.github/workflows/plugins-benchmark-pr.yml@v3
+    uses: fastify/workflows/.github/workflows/plugins-benchmark-pr.yml@main
     with:
       npm-script: bench
+
+  remove-label:
+    if: "always()"
+    needs: benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove benchmark label
+        uses: octokit/request-action@v2.x
+        id: remove-label
+        with:
+          route: DELETE /repos/{repo}/issues/{issue_number}/labels/{name}
+          repo: ${{ github.event.pull_request.base.repo.full_name }}
+          issue_number: ${{ github.event.pull_request.number }}
+          name: benchmark
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
