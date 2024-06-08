@@ -13,7 +13,7 @@ on:
 jobs:
   test:
     permissions:
-      contents: write
+      contents: read
       pull-requests: write
     uses: fastify/workflows/.github/workflows/plugins-benchmark-pr.yml@v3
     with:
