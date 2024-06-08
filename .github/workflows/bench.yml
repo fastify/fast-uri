@@ -15,6 +15,6 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    uses: fastify/workflows/.github/workflows/plugins-benchmark-pr.yml@3
+    uses: fastify/workflows/.github/workflows/plugins-benchmark-pr.yml@v3
     with:
       npm-script: bench
