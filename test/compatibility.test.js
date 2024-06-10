@@ -9,6 +9,7 @@ test('compatibility Parse', (t) => {
   const toParse = [
     '//www.g.com/error\n/bleh/bleh',
     'https://fastify.org',
+    '/definitions/Record%3Cstring%2CPerson%3E',
     '//10.10.10.10',
     '//10.10.000.10',
     '//[2001:db8::7%en0]',

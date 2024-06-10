@@ -273,7 +273,7 @@ function parse (uri, opts) {
         parsed.host = unescape(parsed.host)
       }
       if (parsed.path !== undefined && parsed.path.length) {
-        parsed.path = encodeURI(parsed.path)
+        parsed.path = escape(unescape(parsed.path))
       }
       if (parsed.fragment !== undefined && parsed.fragment.length) {
         parsed.fragment = encodeURI(decodeURI(parsed.fragment))
