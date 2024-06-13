@@ -301,5 +301,6 @@ const fastUri = {
 }
 
 module.exports = fastUri
+module.exports.SCHEMES = SCHEMES
 module.exports.default = fastUri
 module.exports.fastUri = fastUri
