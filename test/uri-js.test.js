@@ -2,13 +2,25 @@
 
 const {
   ok,
-  deepEqual,
-  strictEqual,
-  notStrictEqual
-} = require('node:assert')
-const {
-  test
-} = require('node:test')
+  same: deepEqual,
+  strictSame: strictEqual,
+  notSame: notStrictEqual,
+  test: tapTest
+} = require('tap')
+
+const test = function () {
+  if (typeof arguments[2] === 'function') {
+    tapTest(arguments[0], arguments[1], t => {
+      arguments[2](t)
+      t.end()
+    })
+  } else {
+    tapTest(arguments[0], t => {
+      arguments[1](t)
+      t.end()
+    })
+  }
+}
 
 const URI = require('../index')
 
