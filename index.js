@@ -295,6 +295,7 @@ function parse (uri, opts) {
 }
 
 const fastUri = {
+  SCHEMES,
   normalize,
   resolve,
   resolveComponents,
@@ -304,6 +305,5 @@ const fastUri = {
 }
 
 module.exports = fastUri
-module.exports.SCHEMES = SCHEMES
 module.exports.default = fastUri
 module.exports.fastUri = fastUri

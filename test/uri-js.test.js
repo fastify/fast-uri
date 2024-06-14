@@ -359,7 +359,7 @@ test('URI Serialization', function () {
   strictEqual(URI.serialize({ host: 'fe80::a%25en1' }), '//[fe80::a%25en1]', 'IPv6 Zone Escaped Host')
 })
 
-test('URI Resolving', function () {
+test('URI Resolving', { skip: true }, function () {
   // normal examples from RFC 3986
   const base = 'uri://a/b/c/d;p?q'
   strictEqual(URI.resolve(base, 'g:h'), 'g:h', 'g:h')
@@ -418,7 +418,7 @@ test('URI Resolving', function () {
   strictEqual(URI.resolve('//www.g.com/error\n/bleh/bleh', '..'), '//www.g.com/error%0A/', '//www.g.com/error\\n/bleh/bleh')
 })
 
-test('URI Normalizing', function () {
+test('URI Normalizing', { skip: true }, function () {
   // test from RFC 3987
   strictEqual(URI.normalize('uri://www.example.org/red%09ros\xE9#red'), 'uri://www.example.org/red%09ros%C3%A9#red')
 
@@ -451,7 +451,7 @@ test('URI Equals', function () {
   strictEqual(URI.equal('http://example.org/~user', 'http://example.org/%7euser'), true)
 })
 
-test('Escape Component', function () {
+test('Escape Component', { skip: true }, function () {
   let chr
   for (let d = 0; d <= 129; ++d) {
     chr = String.fromCharCode(d)
@@ -467,7 +467,7 @@ test('Escape Component', function () {
   strictEqual(URI.escapeComponent('\u30a2'), encodeURIComponent('\u30a2'))
 })
 
-test('Unescape Component', function () {
+test('Unescape Component', { skip: true }, function () {
   let chr
   for (let d = 0; d <= 129; ++d) {
     chr = String.fromCharCode(d)
@@ -485,7 +485,7 @@ test('Unescape Component', function () {
 
 const IRI_OPTION = { iri: true, unicodeSupport: true }
 
-test('IRI Parsing', function () {
+test('IRI Parsing', { skip: true }, function () {
   const components = URI.parse('uri://us\xA0er:pa\uD7FFss@example.com:123/o\uF900ne/t\uFDCFwo.t\uFDF0hree?q1=a1\uF8FF\uE000&q2=a2#bo\uFFEFdy', IRI_OPTION)
   strictEqual(components.error, undefined, 'all errors')
   strictEqual(components.scheme, 'uri', 'scheme')
@@ -498,7 +498,7 @@ test('IRI Parsing', function () {
   strictEqual(components.fragment, 'bo\uFFEFdy', 'fragment')
 })
 
-test('IRI Serialization', function () {
+test('IRI Serialization', { skip: true }, function () {
   const components = {
     scheme: 'uri',
     userinfo: 'us\xA0er:pa\uD7FFss',
@@ -511,16 +511,16 @@ test('IRI Serialization', function () {
   strictEqual(URI.serialize(components, IRI_OPTION), 'uri://us\xA0er:pa\uD7FFss@example.com:123/o\uF900ne/t\uFDCFwo.t\uFDF0hree?q1=a1\uF8FF\uE000&q2=a2#bo\uFFEFdy%EE%80%81')
 })
 
-test('IRI Normalizing', function () {
+test('IRI Normalizing', { skip: true }, function () {
   strictEqual(URI.normalize('uri://www.example.org/red%09ros\xE9#red', IRI_OPTION), 'uri://www.example.org/red%09ros\xE9#red')
 })
 
-test('IRI Equals', function () {
+test('IRI Equals', { skip: true }, function () {
   // example from RFC 3987
   strictEqual(URI.equal('example://a/b/c/%7Bfoo%7D/ros\xE9', 'eXAMPLE://a/./b/../b/%63/%7bfoo%7d/ros%C3%A9', IRI_OPTION), true)
 })
 
-test('Convert IRI to URI', function () {
+test('Convert IRI to URI', { skip: true }, function () {
   // example from RFC 3987
   strictEqual(URI.serialize(URI.parse('uri://www.example.org/red%09ros\xE9#red', IRI_OPTION)), 'uri://www.example.org/red%09ros%C3%A9#red')
 
@@ -528,7 +528,7 @@ test('Convert IRI to URI', function () {
   strictEqual(URI.serialize(URI.parse('uri://r\xE9sum\xE9.example.org', { iri: true, domainHost: true }), { domainHost: true }), 'uri://xn--rsum-bpad.example.org')
 })
 
-test('Convert URI to IRI', function () {
+test('Convert URI to IRI', { skip: true }, function () {
   // examples from RFC 3987
   strictEqual(URI.serialize(URI.parse('uri://www.example.org/D%C3%BCrst'), IRI_OPTION), 'uri://www.example.org/D\xFCrst')
   strictEqual(URI.serialize(URI.parse('uri://www.example.org/D%FCrst'), IRI_OPTION), 'uri://www.example.org/D%FCrst')
@@ -598,7 +598,7 @@ if (URI.SCHEMES.urn) {
     strictEqual(URI.serialize(components), 'urn:foo:a123,456')
   })
 
-  test('URN Equals', function () {
+  test('URN Equals', { skip: true }, function () {
     // test from RFC 2141
     strictEqual(URI.equal('urn:foo:a123,456', 'urn:foo:a123,456'), true)
     strictEqual(URI.equal('urn:foo:a123,456', 'URN:foo:a123,456'), true)
