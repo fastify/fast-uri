@@ -1,7 +1,7 @@
 {
   "name": "fast-uri",
   "description": "Dependency free RFC 3986 URI toolbox",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "main": "index.js",
   "type": "commonjs",
   "types": "types/index.d.ts",
@@ -9,7 +9,7 @@
   "author": "Vincent Le Goff <vince.legoff@gmail.com> (https://github.com/zekth)",
   "repository": {
     "type": "git",
-    "url": "https://github.com/fastify/fast-uri"
+    "url": "git+https://github.com/fastify/fast-uri.git"
   },
   "bugs": {
     "url": "https://github.com/fastify/fast-uri/issues"
@@ -31,11 +31,7 @@
     "snazzy": "^9.0.0",
     "standard": "^17.0.0",
     "tap": "^16.0.0",
-    "tsd": "^0.29.0",
+    "tsd": "^0.31.0",
     "uri-js": "^4.4.1"
-  },
-  "dependencies": {},
-  "tap": {
-    "check-coverage": false
   }
 }

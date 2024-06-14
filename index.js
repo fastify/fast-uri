@@ -1,6 +1,5 @@
 'use strict'
 
-const URL = require('node:url')
 const { normalizeIPv6, normalizeIPv4, removeDotSegments, recomposeAuthority, normalizeComponentEncoding } = require('./lib/utils')
 const SCHEMES = require('./lib/schemes')
 
@@ -205,6 +204,7 @@ function parse (uri, opts) {
     fragment: undefined
   }
   const gotEncoding = uri.indexOf('%') !== -1
+  let isIP = false
   if (options.reference === 'suffix') uri = (options.scheme ? options.scheme + ':' : '') + '//' + uri
 
   const matches = uri.match(URI_PARSE)
@@ -226,9 +226,12 @@ function parse (uri, opts) {
     if (parsed.host) {
       const ipv4result = normalizeIPv4(parsed.host)
       if (ipv4result.isIPV4 === false) {
-        parsed.host = normalizeIPv6(ipv4result.host, { isIPV4: false }).host.toLowerCase()
+        const ipv6result = normalizeIPv6(ipv4result.host, { isIPV4: false })
+        parsed.host = ipv6result.host.toLowerCase()
+        isIP = ipv6result.isIPV6
       } else {
         parsed.host = ipv4result.host
+        isIP = true
       }
     }
     if (parsed.scheme === undefined && parsed.userinfo === undefined && parsed.host === undefined && parsed.port === undefined && !parsed.path && parsed.query === undefined) {
@@ -252,7 +255,7 @@ function parse (uri, opts) {
     // check if scheme can't handle IRIs
     if (!options.unicodeSupport && (!schemeHandler || !schemeHandler.unicodeSupport)) {
       // if host component is a domain name
-      if (parsed.host && (options.domainHost || (schemeHandler && schemeHandler.domainHost)) && nonSimpleDomain(parsed.host)) {
+      if (parsed.host && (options.domainHost || (schemeHandler && schemeHandler.domainHost)) && isIP === false && nonSimpleDomain(parsed.host)) {
         // convert Unicode IDN -> ASCII IDN
         try {
           parsed.host = URL.domainToASCII(parsed.host.toLowerCase())
@@ -274,7 +277,7 @@ function parse (uri, opts) {
         parsed.host = unescape(parsed.host)
       }
       if (parsed.path !== undefined && parsed.path.length) {
-        parsed.path = encodeURI(parsed.path)
+        parsed.path = escape(unescape(parsed.path))
       }
       if (parsed.fragment !== undefined && parsed.fragment.length) {
         parsed.fragment = encodeURI(decodeURI(parsed.fragment))
