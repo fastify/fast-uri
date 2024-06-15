@@ -295,6 +295,7 @@ function parse (uri, opts) {
 }
 
 const fastUri = {
+  SCHEMES,
   normalize,
   resolve,
   resolveComponents,
