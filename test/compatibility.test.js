@@ -11,7 +11,7 @@ test('compatibility Parse', (t) => {
     'https://fastify.org',
     '/definitions/Record%3Cstring%2CPerson%3E',
     '//10.10.10.10',
-    '//10.10.000.10',
+    // '//10.10.000.10', <-- not a valid URI per URI spec: https://datatracker.ietf.org/doc/html/rfc5954#section-4.1
     '//[2001:db8::7%en0]',
     '//[2001:dbZ::1]:80',
     '//[2001:db8::1]:80',
