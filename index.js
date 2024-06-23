@@ -130,7 +130,7 @@ function serialize (cmpts, opts) {
         components.path = components.path.split('%3A').join(':')
       }
     } else {
-      components.path = unescape(components.path)
+      components.path = decodeURIComponent(components.path)
     }
   }
 
