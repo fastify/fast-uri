@@ -26,6 +26,7 @@
     "test:ci": "npm run test:lint && npm run test:unit -- --cov --coverage-report=lcovonly && npm run test:typescript"
   },
   "devDependencies": {
+    "ajv": "^8.16.0",
     "benchmark": "^2.1.4",
     "coveralls": "^3.1.1",
     "snazzy": "^9.0.0",
