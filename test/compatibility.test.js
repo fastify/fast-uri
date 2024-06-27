@@ -1,7 +1,6 @@
 'use strict'
 
-const tap = require('tap')
-const test = tap.test
+const test = require('tape')
 const fastifyURI = require('../')
 const urijs = require('uri-js')
 
