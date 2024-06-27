@@ -20,4 +20,4 @@ jobs:
     uses: fastify/workflows/.github/workflows/plugins-ci.yml@v4.2.0
     with:
       license-check: true
-      node-versions: '["16", "18", "20"]'
+      node-versions: '["16", "18", "20", "22"]'
