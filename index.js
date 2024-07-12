@@ -221,7 +221,11 @@ function parse (uri, opts) {
 
     // fix port number
     if (isNaN(parsed.port)) {
-      parsed.port = matches[5]
+      if (matches[5] === undefined) {
+        parsed.port = parsed.scheme === 'http' ? 80 : 443
+      } else {
+        parsed.port = matches[5]
+      }
     }
     if (parsed.host) {
       const ipv4result = normalizeIPv4(parsed.host)

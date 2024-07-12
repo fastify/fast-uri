@@ -314,5 +314,11 @@ test('URI parse', (t) => {
 
   components = URI.parse('urn:foo:|\\24fpl')
   t.equal(components.error, 'URN can not be parsed.')
+
+  components = URI.parse('http://example.com/')
+  t.equal(components.port, 80)
+  components = URI.parse('https://example.com/')
+  t.equal(components.port, 443)
+
   t.end()
 })
