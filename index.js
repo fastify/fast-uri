@@ -135,8 +135,7 @@ function serialize (cmpts, opts) {
   }
 
   if (options.reference !== 'suffix' && components.scheme) {
-    uriTokens.push(components.scheme)
-    uriTokens.push(':')
+    uriTokens.push(components.scheme, ':')
   }
 
   const authority = recomposeAuthority(components, options)
@@ -166,13 +165,11 @@ function serialize (cmpts, opts) {
   }
 
   if (components.query !== undefined) {
-    uriTokens.push('?')
-    uriTokens.push(components.query)
+    uriTokens.push('?', components.query)
   }
 
   if (components.fragment !== undefined) {
-    uriTokens.push('#')
-    uriTokens.push(components.fragment)
+    uriTokens.push('#', components.fragment)
   }
   return uriTokens.join('')
 }
