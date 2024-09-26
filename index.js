@@ -267,9 +267,6 @@ function parse (uri, opts) {
       if (gotEncoding && parsed.scheme !== undefined) {
         parsed.scheme = unescape(parsed.scheme)
       }
-      if (gotEncoding && parsed.userinfo !== undefined) {
-        parsed.userinfo = unescape(parsed.userinfo)
-      }
       if (gotEncoding && parsed.host !== undefined) {
         parsed.host = unescape(parsed.host)
       }

@@ -17,6 +17,8 @@ test('compatibility Parse', (t) => {
     '//[2001:db8::001]:80',
     'uri://user:pass@example.com:123/one/two.three?q1=a1&q2=a2#body',
     'http://user:pass@example.com:123/one/space in.url?q1=a1&q2=a2#body',
+    'http://User:Pass@example.com:123/one/space in.url?q1=a1&q2=a2#body',
+    'http://A%3AB@example.com:123/one/space',
     '//[::ffff:129.144.52.38]',
     'uri://10.10.10.10.example.com/en/process',
     '//[2606:2800:220:1:248:1893:25c8:1946]/test',
