@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "commonjs",
   "types": "types/index.d.ts",
-  "license": "MIT",
+  "license": "BSD-3-Clause",
   "author": "Vincent Le Goff <vince.legoff@gmail.com> (https://github.com/zekth)",
   "repository": {
     "type": "git",
