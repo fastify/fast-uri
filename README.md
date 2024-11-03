@@ -64,7 +64,7 @@ uri.serialize({scheme : "http", host : "example.com", fragment : "footer"})
 
 ```js
 const uri = require('fast-uri')
-uri.resolve("uri://a/b/c/d?q", "../../g") 
+uri.resolve("uri://a/b/c/d?q", "../../g")
 // Output
 "uri://a/g"
 ```
