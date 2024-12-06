@@ -15,6 +15,7 @@
     "url": "https://github.com/fastify/fast-uri/issues"
   },
   "homepage": "https://github.com/fastify/fast-uri",
+  "module": "./index.js",
   "sideEffects": false,
   "scripts": {
     "bench": "node benchmark.js",
