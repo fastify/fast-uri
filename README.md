@@ -3,7 +3,7 @@
 <div align="center">
 
 [![CI](https://github.com/fastify/fast-uri/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/fastify/fast-uri/actions/workflows/ci.yml)
-[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://standardjs.com/)
+[![neostandard javascript style](https://img.shields.io/badge/code_style-neostandard-brightgreen?style=flat)](https://github.com/neostandard/neostandard)
 
 </div>
 

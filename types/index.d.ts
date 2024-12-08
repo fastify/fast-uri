@@ -30,21 +30,21 @@ declare namespace fastUri {
    */
   export type URIComponents = URIComponent
 
-  export function normalize(uri: string, opts?: Options): string;
-  export function normalize(uri: URIComponent, opts?: Options): URIComponent;
-  export function normalize(uri: any, opts?: Options): any;
+  export function normalize (uri: string, opts?: Options): string
+  export function normalize (uri: URIComponent, opts?: Options): URIComponent
+  export function normalize (uri: any, opts?: Options): any
 
-  export function resolve(baseURI: string, relativeURI: string, options?: Options): string
+  export function resolve (baseURI: string, relativeURI: string, options?: Options): string
 
-  export function resolveComponent(base: URIComponent, relative: URIComponent, options?: Options, skipNormalization?: boolean): URIComponent
+  export function resolveComponent (base: URIComponent, relative: URIComponent, options?: Options, skipNormalization?: boolean): URIComponent
 
-  export function parse(uri: string, opts?: Options): URIComponent;
+  export function parse (uri: string, opts?: Options): URIComponent
 
-  export function serialize(component: URIComponent, opts?: Options): string;
+  export function serialize (component: URIComponent, opts?: Options): string
 
-  export function equal(uriA: string, uriB: string): boolean;
+  export function equal (uriA: string, uriB: string): boolean
 
-  export function resolve(base: string, path: string): string;
+  export function resolve (base: string, path: string): string
 
   export const fastUri: FastUri
   export { fastUri as default }

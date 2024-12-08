@@ -17,10 +17,9 @@
   "homepage": "https://github.com/fastify/fast-uri",
   "scripts": {
     "bench": "node benchmark.js",
-    "lint": "standard | snazzy",
-    "lint:fix": "standard --fix",
-    "test": "npm run lint && npm run test:unit && npm run test:typescript",
-    "test:ci": "npm run lint && npm run test:unit -- --coverage-report=lcovonly && npm run test:typescript",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "test": "npm run test:unit && npm run test:typescript",
     "test:unit": "npx tape test/**/*.js",
     "test:unit:dev": "npm run test:unit -- --coverage-report=html",
     "test:typescript": "tsd"
@@ -30,8 +29,7 @@
     "ajv": "^8.16.0",
     "benchmark": "^2.1.4",
     "coveralls": "^3.1.1",
-    "snazzy": "^9.0.0",
-    "standard": "^17.1.0",
+    "neostandard": "^0.11.9",
     "tape": "^5.8.1",
     "tsd": "^0.31.0",
     "uri-js": "^4.4.1"
