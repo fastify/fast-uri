@@ -7,6 +7,26 @@
   "types": "types/index.d.ts",
   "license": "BSD-3-Clause",
   "author": "Vincent Le Goff <vince.legoff@gmail.com> (https://github.com/zekth)",
+  "contributors": [
+    {
+      "name": "Matteo Collina",
+      "email": "hello@matteocollina.com"
+    },
+    {
+      "name": "Gürgün Dayıoğlu",
+      "email": "hey@gurgun.day",
+      "url": "https://heyhey.to/G"
+    },
+    {
+      "name": "Aras Abbasi",
+      "email": "aras.abbasi@gmail.com"
+    },
+    {
+      "name": "Frazer Smith",
+      "email": "frazer.dev@icloud.com",
+      "url": "https://github.com/fdawgs"
+    }
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/fastify/fast-uri.git"
@@ -15,6 +35,16 @@
     "url": "https://github.com/fastify/fast-uri/issues"
   },
   "homepage": "https://github.com/fastify/fast-uri",
+  "funding": [
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/fastify"
+    },
+    {
+      "type": "opencollective",
+      "url": "https://opencollective.com/fastify"
+    }
+  ],
   "scripts": {
     "bench": "node benchmark.js",
     "lint": "eslint",
