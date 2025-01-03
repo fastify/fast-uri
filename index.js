@@ -138,7 +138,7 @@ function serialize (cmpts, opts) {
     uriTokens.push(components.scheme, ':')
   }
 
-  const authority = recomposeAuthority(components, options)
+  const authority = recomposeAuthority(components)
   if (authority !== undefined) {
     if (options.reference !== 'suffix') {
       uriTokens.push('//')
@@ -223,7 +223,7 @@ function parse (uri, opts) {
     if (parsed.host) {
       const ipv4result = normalizeIPv4(parsed.host)
       if (ipv4result.isIPV4 === false) {
-        const ipv6result = normalizeIPv6(ipv4result.host, { isIPV4: false })
+        const ipv6result = normalizeIPv6(ipv4result.host)
         parsed.host = ipv6result.host.toLowerCase()
         isIP = ipv6result.isIPV6
       } else {
