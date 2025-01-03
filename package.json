@@ -1,6 +1,6 @@
 {
   "name": "fast-uri",
-  "description": "Dependency free RFC 3986 URI toolbox",
+  "description": "Dependency-free RFC 3986 URI toolbox",
   "version": "3.0.3",
   "main": "index.js",
   "type": "commonjs",
