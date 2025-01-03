@@ -2,12 +2,13 @@
 
 <div align="center">
 
+[![NPM version](https://img.shields.io/npm/v/fast-uri.svg?style=flat)](https://www.npmjs.com/package/fast-uri)
 [![CI](https://github.com/fastify/fast-uri/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/fastify/fast-uri/actions/workflows/ci.yml)
 [![neostandard javascript style](https://img.shields.io/badge/code_style-neostandard-brightgreen?style=flat)](https://github.com/neostandard/neostandard)
 
 </div>
 
-Dependency free RFC 3986 URI toolbox.
+Dependency-free RFC 3986 URI toolbox.
 
 ## Usage
 
@@ -40,13 +41,13 @@ const uri = require('fast-uri')
 uri.parse('uri://user:pass@example.com:123/one/two.three?q1=a1&q2=a2#body')
 // Output
 {
-  scheme : "uri",
-  userinfo : "user:pass",
-  host : "example.com",
-  port : 123,
-  path : "/one/two.three",
-  query : "q1=a1&q2=a2",
-  fragment : "body"
+  scheme: "uri",
+  userinfo: "user:pass",
+  host: "example.com",
+  port: 123,
+  path: "/one/two.three",
+  query: "q1=a1&q2=a2",
+  fragment: "body"
 }
 ```
 
@@ -54,7 +55,7 @@ uri.parse('uri://user:pass@example.com:123/one/two.three?q1=a1&q2=a2#body')
 
 ```js
 const uri = require('fast-uri')
-uri.serialize({scheme : "http", host : "example.com", fragment : "footer"})
+uri.serialize({scheme: "http", host: "example.com", fragment: "footer"})
 // Output
 "http://example.com/#footer"
 
@@ -80,7 +81,7 @@ true
 
 ## Scheme supports
 
-fast-uri supports inserting custom [scheme](http://en.wikipedia.org/wiki/URI_scheme) dependent processing rules. Currently, fast-uri has built in support for the following schemes:
+fast-uri supports inserting custom [scheme](http://en.wikipedia.org/wiki/URI_scheme)-dependent processing rules. Currently, fast-uri has built-in support for the following schemes:
 
 *	http \[[RFC 2616](http://www.ietf.org/rfc/rfc2616.txt)\]
 *	https \[[RFC 2818](http://www.ietf.org/rfc/rfc2818.txt)\]
@@ -123,3 +124,7 @@ urijs: resolve x 225,759 ops/sec ±0.37% (95 runs sampled)
 - [ ] Support MailTo
 - [ ] Be 100% iso compatible with uri-js
 - [ ] Add browser test stack
+
+## License
+
+Licensed under [BSD-3-Clause](./LICENSE).
