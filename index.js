@@ -174,7 +174,7 @@ function serialize (cmpts, opts) {
   return uriTokens.join('')
 }
 
-const hexLookUp = Array.from({ length: 127 }, (v, k) => /[^!"$&'()*+,\-.;=_`a-z{}~]/u.test(String.fromCharCode(k)))
+const hexLookUp = Array.from({ length: 127 }, (_v, k) => /[^!"$&'()*+,\-.;=_`a-z{}~]/u.test(String.fromCharCode(k)))
 
 function nonSimpleDomain (value) {
   let code = 0
