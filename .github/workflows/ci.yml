@@ -43,7 +43,7 @@ jobs:
 
   test:
     needs:
-      - test-regression-node10
+      - test-regression-check-node10
     uses: fastify/workflows/.github/workflows/plugins-ci.yml@v5
     with:
       license-check: true
