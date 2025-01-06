@@ -35,6 +35,13 @@ jobs:
         run: |
           npm install --ignore-scripts
 
+      - name: Copy project as fast-uri to node_node_modules
+        run: |
+          rm -rf /node_modules/fast-uri/lib &&
+          rm -rf ./node_modules/fast-uri/index.js &&
+          cp -r ./lib ./node_modules/fast-uri/lib &&
+          cp ./index.js ./node_modules/fast-uri/index.js
+
       - name: Run tests
         run: |
           npm run test:unit
