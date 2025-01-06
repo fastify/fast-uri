@@ -120,7 +120,7 @@ function serialize (cmpts, opts) {
   const schemeHandler = SCHEMES[(options.scheme || components.scheme || '').toLowerCase()]
 
   // perform scheme specific serialization
-  if (schemeHandler?.serialize) schemeHandler.serialize(components, options)
+  if (schemeHandler && schemeHandler.serialize) schemeHandler.serialize(components, options)
 
   if (components.path !== undefined) {
     if (!options.skipEscape) {
@@ -252,7 +252,7 @@ function parse (uri, opts) {
     // check if scheme can't handle IRIs
     if (!options.unicodeSupport && (!schemeHandler || !schemeHandler.unicodeSupport)) {
       // if host component is a domain name
-      if (parsed.host && (options.domainHost || schemeHandler?.domainHost) && isIP === false && nonSimpleDomain(parsed.host)) {
+      if (parsed.host && (options.domainHost || (schemeHandler && schemeHandler.domainHost)) && isIP === false && nonSimpleDomain(parsed.host)) {
         // convert Unicode IDN -> ASCII IDN
         try {
           parsed.host = URL.domainToASCII(parsed.host.toLowerCase())
@@ -270,16 +270,16 @@ function parse (uri, opts) {
       if (gotEncoding && parsed.host !== undefined) {
         parsed.host = unescape(parsed.host)
       }
-      if (parsed.path?.length) {
+      if (parsed.path && parsed.path.length) {
         parsed.path = escape(unescape(parsed.path))
       }
-      if (parsed.fragment?.length) {
+      if (parsed.fragment && parsed.fragment.length) {
         parsed.fragment = encodeURI(decodeURIComponent(parsed.fragment))
       }
     }
 
     // perform scheme specific parsing
-    if (schemeHandler?.parse) {
+    if (schemeHandler && schemeHandler.parse) {
       schemeHandler.parse(parsed, options)
     }
   } else {
