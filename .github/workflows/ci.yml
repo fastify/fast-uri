@@ -48,6 +48,9 @@ jobs:
           NODE_OPTIONS: no-network-family-autoselection
 
   test:
+    permissions:
+      contents: write
+      pull-requests: write
     needs:
       - test-regression-check-node10
     uses: fastify/workflows/.github/workflows/plugins-ci.yml@v5
