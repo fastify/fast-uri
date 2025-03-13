@@ -2,7 +2,7 @@
 
 const test = require('tape')
 const fastifyURI = require('../')
-const urijs = require('uri-js')
+const urijs = require('uri-js-replace')
 
 test('compatibility Parse', (t) => {
   const toParse = [
