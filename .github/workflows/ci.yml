@@ -21,6 +21,8 @@ jobs:
   test-regression-check-node10:
     name: Test compatibility with Node.js 10
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -53,6 +55,9 @@ jobs:
   test:
     needs:
       - test-regression-check-node10
+    permissions:
+      contents: write
+      pull-requests: write
     uses: fastify/workflows/.github/workflows/plugins-ci.yml@v5
     with:
       license-check: true
