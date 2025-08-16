@@ -1,6 +1,6 @@
 'use strict'
 
-const { normalizeIPv6, normalizeIPv4, removeDotSegments, recomposeAuthority, normalizeComponentEncoding } = require('./lib/utils')
+const { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizeComponentEncoding, isIPv4 } = require('./lib/utils')
 const SCHEMES = require('./lib/schemes')
 
 function normalize (uri, options) {
@@ -221,13 +221,12 @@ function parse (uri, opts) {
       parsed.port = matches[5]
     }
     if (parsed.host) {
-      const ipv4result = normalizeIPv4(parsed.host)
-      if (ipv4result.isIPV4 === false) {
-        const ipv6result = normalizeIPv6(ipv4result.host)
+      const ipv4result = isIPv4(parsed.host)
+      if (ipv4result === false) {
+        const ipv6result = normalizeIPv6(parsed.host)
         parsed.host = ipv6result.host.toLowerCase()
         isIP = ipv6result.isIPV6
       } else {
-        parsed.host = ipv4result.host
         isIP = true
       }
     }
