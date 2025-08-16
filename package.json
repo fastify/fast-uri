@@ -46,7 +46,7 @@
     }
   ],
   "scripts": {
-    "bench": "node benchmark.js",
+    "bench": "node benchmark.mjs",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "test": "npm run test:unit && npm run test:typescript",
@@ -57,11 +57,11 @@
   "devDependencies": {
     "@fastify/pre-commit": "^2.1.0",
     "ajv": "^8.16.0",
-    "benchmark": "^2.1.4",
     "coveralls": "^3.1.1",
     "eslint": "^9.17.0",
     "neostandard": "^0.12.0",
     "tape": "^5.8.1",
+    "tinybench": "^5.0.0",
     "tsd": "^0.32.0",
     "uri-js": "^4.4.1"
   }
