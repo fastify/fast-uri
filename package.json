@@ -46,7 +46,6 @@
     }
   ],
   "scripts": {
-    "bench": "node benchmark.mjs",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "test": "npm run test:unit && npm run test:typescript",
