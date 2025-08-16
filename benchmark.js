@@ -78,6 +78,28 @@ suite.add('urijs: serialize uri', function () {
     fragment: 'fragment'
   })
 })
+suite.add('fast-uri: serialize long uri with dots', function () {
+  fasturi.serialize({
+    scheme: 'uri',
+    userinfo: 'foo:bar',
+    host: 'example.com',
+    port: 1,
+    path: './a/./b/c/../.././d/../e/f/.././/',
+    query: 'query',
+    fragment: 'fragment'
+  })
+})
+suite.add('urijs: serialize long uri with dots', function () {
+  urijs.serialize({
+    scheme: 'uri',
+    userinfo: 'foo:bar',
+    host: 'example.com',
+    port: 1,
+    path: './a/./b/c/../.././d/../e/f/.././/',
+    query: 'query',
+    fragment: 'fragment'
+  })
+})
 suite.add('fast-uri: serialize IPv6', function () {
   fasturi.serialize({ host: '2606:2800:220:1:248:1893:25c8:1946' })
 })
