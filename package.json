@@ -46,7 +46,6 @@
     }
   ],
   "scripts": {
-    "bench": "node benchmark.js",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "test": "npm run test:unit && npm run test:typescript",
@@ -57,7 +56,6 @@
   "devDependencies": {
     "@fastify/pre-commit": "^2.1.0",
     "ajv": "^8.16.0",
-    "benchmark": "^2.1.4",
     "eslint": "^9.17.0",
     "neostandard": "^0.12.0",
     "tape": "^5.8.1",
