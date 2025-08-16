@@ -1,5 +1,5 @@
 import { Bench } from 'tinybench'
-import { fastUri } from './index.js'
+import { fastUri } from '../index.js'
 import { parse as uriJsParse, serialize as uriJsSerialize, resolve as uriJsResolve } from 'uri-js'
 
 const base = 'uri://a/b/c/d;p?q'
