@@ -101,7 +101,7 @@ test('WSS serialize', (t) => {
 })
 
 test('URN serialize', (t) => {
-// example from RFC 2141
+  // example from RFC 2141
   const components = {
     scheme: 'urn',
     nid: 'foo',
@@ -122,6 +122,15 @@ test('URN serialize', (t) => {
     uuid: 'notauuid-7dec-11d0-a765-00a0c91e6bf6'
   }
   t.equal(fastURI.serialize(uuidcomponents), 'urn:uuid:notauuid-7dec-11d0-a765-00a0c91e6bf6')
+  t.equal(fastURI.serialize(uuidcomponents), 'urn:uuid:notauuid-7dec-11d0-a765-00a0c91e6bf6')
+
+  uuidcomponents = {
+    scheme: 'urn',
+    nid: undefined,
+    uuid: 'notauuid-7dec-11d0-a765-00a0c91e6bf6'
+  }
+  t.throws(() => { fastURI.serialize(uuidcomponents) }, 'URN without nid cannot be serialized')
+
   t.end()
 })
 test('URN NID Override', (t) => {

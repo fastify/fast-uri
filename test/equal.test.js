@@ -56,8 +56,7 @@ test('URN Equals', (t) => {
     // test from RFC 2141
     { pair: ['urn:foo:a123,456', 'urn:foo:a123,456'], result: true },
     { pair: ['urn:foo:a123,456', 'URN:foo:a123,456'], result: true },
-    { pair: ['urn:foo:a123,456', 'urn:FOO:a123,456'], result: true },
-    { pair: ['urn:', 'urn:FOO:a123,456'], result: false }
+    { pair: ['urn:foo:a123,456', 'urn:FOO:a123,456'], result: true }
   ]
 
   // Disabling for now as the whole equal logic might need
