@@ -65,6 +65,11 @@ test('URN Equals', (t) => {
   // t.equal(URI.equal('urn:foo:a123%2C456', 'URN:FOO:a123%2c456'), true)
 
   runTest(t, suite)
+
+  t.throws(() => {
+    fn('urn:', 'urn:FOO:a123,456')
+  }, 'URN without nid cannot be serialized')
+
   t.end()
 })
 
