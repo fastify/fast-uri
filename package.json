@@ -60,8 +60,6 @@
     "neostandard": "^0.12.0",
     "playwright": "^1.54.2",
     "playwright-test": "^14.1.12",
-    "tap-mocha-reporter": "^5.0.4",
-    "tap-parser": "^18.0.0",
     "tape": "^5.8.1",
     "tsd": "^0.32.0"
   }

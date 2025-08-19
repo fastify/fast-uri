@@ -52,6 +52,41 @@ jobs:
         env:
           NODE_OPTIONS: no-network-family-autoselection
 
+  test-browser:
+    name: Test browser compatibility
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
+        browser: ['chrome', 'firefox', 'safari', 'edge']
+        exclude:
+          - os: ubuntu-latest
+            browser: safari
+          - os: windows-latest
+            browser: safari
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: package.json
+          check-latest: true
+
+      - name: Install dependencies
+        run: |
+          npm install --ignore-scripts
+
+      - name: Run browser tests
+        run: |
+          npx playwright-test ./test/* --runner tape
+  
   test:
     needs:
       - test-regression-check-node10
