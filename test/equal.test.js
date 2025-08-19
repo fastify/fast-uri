@@ -1,9 +1,9 @@
 'use strict'
 
 const test = require('tape')
-const URI = require('../')
+const fastURI = require('..')
 
-const fn = URI.equal
+const fn = fastURI.equal
 const runTest = (t, suite) => {
   suite.forEach(s => {
     const operator = s.result ? '==' : '!='
