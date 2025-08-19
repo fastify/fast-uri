@@ -1,9 +1,7 @@
 'use strict'
 
-/* Require Start */
 const { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizeComponentEncoding, isIPv4 } = require('./lib/utils')
 const SCHEMES = require('./lib/schemes')
-/* Require End */
 
 function normalize (uri, options) {
   if (typeof uri === 'string') {
