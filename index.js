@@ -1,24 +1,45 @@
 'use strict'
 
 const { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizeComponentEncoding, isIPv4 } = require('./lib/utils')
-const SCHEMES = require('./lib/schemes')
+const { SCHEMES, getSchemeHandler } = require('./lib/schemes')
 
+/**
+ * @template {import('./types/index').URIComponent|string} T
+ * @param {T} uri
+ * @param {import('./types/index').Options} [options]
+ * @returns {T}
+ */
 function normalize (uri, options) {
   if (typeof uri === 'string') {
-    uri = serialize(parse(uri, options), options)
+    uri = /** @type {T} */ (serialize(parse(uri, options), options))
   } else if (typeof uri === 'object') {
-    uri = parse(serialize(uri, options), options)
+    uri = /** @type {T} */ (parse(serialize(uri, options), options))
   }
   return uri
 }
 
+/**
+ * @param {string} baseURI
+ * @param {string} relativeURI
+ * @param {import('./types/index').Options} [options]
+ * @returns {string}
+ */
 function resolve (baseURI, relativeURI, options) {
-  const schemelessOptions = Object.assign({ scheme: 'null' }, options)
+  const schemelessOptions = options ? Object.assign({ scheme: 'null' }, options) : { scheme: 'null' }
   const resolved = resolveComponents(parse(baseURI, schemelessOptions), parse(relativeURI, schemelessOptions), schemelessOptions, true)
-  return serialize(resolved, { ...schemelessOptions, skipEscape: true })
+  schemelessOptions.skipEscape = true
+  return serialize(resolved, schemelessOptions)
 }
 
+/**
+ * @param {import ('./types/index').URIComponent} base
+ * @param {import ('./types/index').URIComponent} relative
+ * @param {import('./types/index').Options} [options]
+ * @param {boolean} [skipNormalization=false]
+ * @returns {import ('./types/index').URIComponent}
+ */
 function resolveComponents (base, relative, options, skipNormalization) {
+  /** @type {import('./types/index').URIComponent} */
   const target = {}
   if (!skipNormalization) {
     base = parse(serialize(base, options), options) // normalize base components
@@ -51,7 +72,7 @@ function resolveComponents (base, relative, options, skipNormalization) {
           target.query = base.query
         }
       } else {
-        if (relative.path.charAt(0) === '/') {
+        if (relative.path[0] === '/') {
           target.path = removeDotSegments(relative.path)
         } else {
           if ((base.userinfo !== undefined || base.host !== undefined || base.port !== undefined) && !base.path) {
@@ -78,6 +99,12 @@ function resolveComponents (base, relative, options, skipNormalization) {
   return target
 }
 
+/**
+ * @param {import ('./types/index').URIComponent|string} uriA
+ * @param {import ('./types/index').URIComponent|string} uriB
+ * @param {import ('./types/index').Options} options
+ * @returns {boolean}
+ */
 function equal (uriA, uriB, options) {
   if (typeof uriA === 'string') {
     uriA = unescape(uriA)
@@ -96,6 +123,11 @@ function equal (uriA, uriB, options) {
   return uriA.toLowerCase() === uriB.toLowerCase()
 }
 
+/**
+ * @param {Readonly<import('./types/index').URIComponent>} cmpts
+ * @param {import('./types/index').Options} [opts]
+ * @returns {string}
+ */
 function serialize (cmpts, opts) {
   const components = {
     host: cmpts.host,
@@ -117,7 +149,7 @@ function serialize (cmpts, opts) {
   const uriTokens = []
 
   // find scheme handler
-  const schemeHandler = SCHEMES[(options.scheme || components.scheme || '').toLowerCase()]
+  const schemeHandler = getSchemeHandler(options.scheme || components.scheme)
 
   // perform scheme specific serialization
   if (schemeHandler && schemeHandler.serialize) schemeHandler.serialize(components, options)
@@ -146,7 +178,7 @@ function serialize (cmpts, opts) {
 
     uriTokens.push(authority)
 
-    if (components.path && components.path.charAt(0) !== '/') {
+    if (components.path && components.path[0] !== '/') {
       uriTokens.push('/')
     }
   }
@@ -157,8 +189,13 @@ function serialize (cmpts, opts) {
       s = removeDotSegments(s)
     }
 
-    if (authority === undefined) {
-      s = s.replace(/^\/\//u, '/%2F') // don't allow the path to start with "//"
+    if (
+      authority === undefined &&
+      s[0] === '/' &&
+      s[1] === '/'
+    ) {
+      // don't allow the path to start with "//"
+      s = '/%2F' + s.slice(2)
     }
 
     uriTokens.push(s)
@@ -176,6 +213,10 @@ function serialize (cmpts, opts) {
 
 const hexLookUp = Array.from({ length: 127 }, (_v, k) => /[^!"$&'()*+,\-.;=_`a-z{}~]/u.test(String.fromCharCode(k)))
 
+/**
+ * @param {string} value
+ * @returns {boolean}
+ */
 function nonSimpleDomain (value) {
   let code = 0
   for (let i = 0, len = value.length; i < len; ++i) {
@@ -189,8 +230,14 @@ function nonSimpleDomain (value) {
 
 const URI_PARSE = /^(?:([^#/:?]+):)?(?:\/\/((?:([^#/?@]*)@)?(\[[^#/?\]]+\]|[^#/:?]*)(?::(\d*))?))?([^#?]*)(?:\?([^#]*))?(?:#((?:.|[\n\r])*))?/u
 
+/**
+ * @param {string} uri
+ * @param {import('./types/index').Options} [opts]
+ * @returns
+ */
 function parse (uri, opts) {
   const options = Object.assign({}, opts)
+  /** @type {import('./types/index').URIComponent} */
   const parsed = {
     scheme: undefined,
     userinfo: undefined,
@@ -200,9 +247,15 @@ function parse (uri, opts) {
     query: undefined,
     fragment: undefined
   }
-  const gotEncoding = uri.indexOf('%') !== -1
+
   let isIP = false
-  if (options.reference === 'suffix') uri = (options.scheme ? options.scheme + ':' : '') + '//' + uri
+  if (options.reference === 'suffix') {
+    if (options.scheme) {
+      uri = options.scheme + ':' + uri
+    } else {
+      uri = '//' + uri
+    }
+  }
 
   const matches = uri.match(URI_PARSE)
 
@@ -246,7 +299,7 @@ function parse (uri, opts) {
     }
 
     // find scheme handler
-    const schemeHandler = SCHEMES[(options.scheme || parsed.scheme || '').toLowerCase()]
+    const schemeHandler = getSchemeHandler(options.scheme || parsed.scheme)
 
     // check if scheme can't handle IRIs
     if (!options.unicodeSupport && (!schemeHandler || !schemeHandler.unicodeSupport)) {
@@ -263,11 +316,13 @@ function parse (uri, opts) {
     }
 
     if (!schemeHandler || (schemeHandler && !schemeHandler.skipNormalize)) {
-      if (gotEncoding && parsed.scheme !== undefined) {
-        parsed.scheme = unescape(parsed.scheme)
-      }
-      if (gotEncoding && parsed.host !== undefined) {
-        parsed.host = unescape(parsed.host)
+      if (uri.indexOf('%') !== -1) {
+        if (parsed.scheme !== undefined) {
+          parsed.scheme = unescape(parsed.scheme)
+        }
+        if (parsed.host !== undefined) {
+          parsed.host = unescape(parsed.host)
+        }
       }
       if (parsed.path) {
         parsed.path = escape(unescape(parsed.path))
