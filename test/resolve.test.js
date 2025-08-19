@@ -55,6 +55,9 @@ test('URI Resolving', (t) => {
   t.equal(fastURI.resolve(base, 'g#s/../x'), 'uri://a/b/c/g#s/../x', 'g#s/../x')
 
   t.equal(fastURI.resolve(base, 'uri:g'), 'uri:g', 'uri:g')
+  t.equal(fastURI.resolve(base, 'uri:g', {}), 'uri:g', 'uri:g')
+  t.equal(fastURI.resolve(base, 'uri:g', { tolerant: undefined }), 'uri:g', 'uri:g')
+  t.equal(fastURI.resolve(base, 'uri:g', { tolerant: false }), 'uri:g', 'uri:g')
   t.equal(fastURI.resolve(base, 'uri:g', { tolerant: true }), 'uri://a/b/c/g', 'uri:g')
 
   // examples by PAEz
