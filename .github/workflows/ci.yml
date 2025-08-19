@@ -60,6 +60,9 @@ jobs:
       matrix:
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
         browser: ['chromium', 'firefox', 'webkit']
+        exclude:
+          - os: ubuntu-latest
+            browser: webkit
     permissions:
       contents: read
     steps:
