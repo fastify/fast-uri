@@ -137,7 +137,6 @@ WHATWG URL benchmark
 
 - [ ] Support MailTo
 - [ ] Be 100% iso compatible with uri-js
-- [ ] Add browser test stack
 
 ## License
 
