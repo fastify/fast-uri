@@ -10,6 +10,12 @@ const ipv6 = '//[2001:db8::7]'
 const urn = 'urn:foo:a123,456'
 const urnuuid = 'urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6'
 
+const urnuuidComponent = {
+  scheme: 'urn',
+  nid: 'uuid',
+  uuid: 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6'
+}
+
 const {
   parse: fastUriParse,
   serialize: fastUriSerialize,
@@ -62,6 +68,12 @@ benchFastUri.add('fast-uri: parse URN uuid', function () {
 })
 benchUriJs.add('urijs: parse URN uuid', function () {
   uriJsParse(urnuuid)
+})
+benchFastUri.add('fast-uri: serialize URN uuid', function () {
+  fastUriSerialize(urnuuidComponent)
+})
+benchUriJs.add('uri-js: serialize URN uuid', function () {
+  uriJsSerialize(urnuuidComponent)
 })
 benchFastUri.add('fast-uri: serialize uri', function () {
   fastUriSerialize({
