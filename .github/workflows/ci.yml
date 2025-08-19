@@ -59,7 +59,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
-        browser: ['chrome', 'firefox', 'webkit']
+        browser: ['chromium', 'firefox', 'webkit']
     permissions:
       contents: read
     steps:
@@ -80,7 +80,7 @@ jobs:
 
       - name: Run browser tests
         run: |
-          npx playwright-test ./test/* --runner tape --browser ${{ matrix.browser }}
+          npm run test:browser:${{ matrix.browser }}
   
   test:
     needs:
