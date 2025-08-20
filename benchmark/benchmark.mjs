@@ -1,6 +1,6 @@
 import { Bench } from 'tinybench'
 import { fastUri } from '../index.js'
-import { parse as uriJsParse, serialize as uriJsSerialize, resolve as uriJsResolve } from 'uri-js'
+import { parse as uriJsParse, serialize as uriJsSerialize, resolve as uriJsResolve, equal as uriJsEqual } from 'uri-js'
 
 const base = 'uri://a/b/c/d;p?q'
 
@@ -19,7 +19,8 @@ const urnuuidComponent = {
 const {
   parse: fastUriParse,
   serialize: fastUriSerialize,
-  resolve: fastUriResolve
+  resolve: fastUriResolve,
+  equal: fastUriEqual,
 } = fastUri
 
 // Initialization as there is a lot to parse at first
@@ -136,6 +137,13 @@ benchFastUri.add('fast-uri: resolve', function () {
 })
 benchUriJs.add('urijs: resolve', function () {
   uriJsResolve(base, '../../../g')
+})
+
+benchFastUri.add('fast-uri: equal', function () {
+  fastUriEqual('example://a/b/c/%7Bfoo%7D', 'eXAMPLE://a/./b/../b/%63/%7bfoo%7d')
+})
+benchUriJs.add('urijs: equal', function () {
+  uriJsEqual('example://a/b/c/%7Bfoo%7D', 'eXAMPLE://a/./b/../b/%63/%7bfoo%7d')
 })
 
 await benchFastUri.run()
