@@ -26,7 +26,7 @@ function normalize (uri, options) {
  */
 function resolve (baseURI, relativeURI, options) {
   const schemelessOptions = options ? Object.assign({ scheme: 'null' }, options) : { scheme: 'null' }
-  const resolved = resolveComponents(parse(baseURI, schemelessOptions), parse(relativeURI, schemelessOptions), schemelessOptions, true)
+  const resolved = resolveComponent(parse(baseURI, schemelessOptions), parse(relativeURI, schemelessOptions), schemelessOptions, true)
   schemelessOptions.skipEscape = true
   return serialize(resolved, schemelessOptions)
 }
@@ -38,12 +38,12 @@ function resolve (baseURI, relativeURI, options) {
  * @param {boolean} [skipNormalization=false]
  * @returns {import ('./types/index').URIComponent}
  */
-function resolveComponents (base, relative, options, skipNormalization) {
+function resolveComponent (base, relative, options, skipNormalization) {
   /** @type {import('./types/index').URIComponent} */
   const target = {}
   if (!skipNormalization) {
-    base = parse(serialize(base, options), options) // normalize base components
-    relative = parse(serialize(relative, options), options) // normalize relative components
+    base = parse(serialize(base, options), options) // normalize base component
+    relative = parse(serialize(relative, options), options) // normalize relative component
   }
   options = options || {}
 
@@ -129,7 +129,7 @@ function equal (uriA, uriB, options) {
  * @returns {string}
  */
 function serialize (cmpts, opts) {
-  const components = {
+  const component = {
     host: cmpts.host,
     scheme: cmpts.scheme,
     userinfo: cmpts.userinfo,
@@ -149,28 +149,28 @@ function serialize (cmpts, opts) {
   const uriTokens = []
 
   // find scheme handler
-  const schemeHandler = getSchemeHandler(options.scheme || components.scheme)
+  const schemeHandler = getSchemeHandler(options.scheme || component.scheme)
 
   // perform scheme specific serialization
-  if (schemeHandler && schemeHandler.serialize) schemeHandler.serialize(components, options)
+  if (schemeHandler && schemeHandler.serialize) schemeHandler.serialize(component, options)
 
-  if (components.path !== undefined) {
+  if (component.path !== undefined) {
     if (!options.skipEscape) {
-      components.path = escape(components.path)
+      component.path = escape(component.path)
 
-      if (components.scheme !== undefined) {
-        components.path = components.path.split('%3A').join(':')
+      if (component.scheme !== undefined) {
+        component.path = component.path.split('%3A').join(':')
       }
     } else {
-      components.path = unescape(components.path)
+      component.path = unescape(component.path)
     }
   }
 
-  if (options.reference !== 'suffix' && components.scheme) {
-    uriTokens.push(components.scheme, ':')
+  if (options.reference !== 'suffix' && component.scheme) {
+    uriTokens.push(component.scheme, ':')
   }
 
-  const authority = recomposeAuthority(components)
+  const authority = recomposeAuthority(component)
   if (authority !== undefined) {
     if (options.reference !== 'suffix') {
       uriTokens.push('//')
@@ -178,12 +178,12 @@ function serialize (cmpts, opts) {
 
     uriTokens.push(authority)
 
-    if (components.path && components.path[0] !== '/') {
+    if (component.path && component.path[0] !== '/') {
       uriTokens.push('/')
     }
   }
-  if (components.path !== undefined) {
-    let s = components.path
+  if (component.path !== undefined) {
+    let s = component.path
 
     if (!options.absolutePath && (!schemeHandler || !schemeHandler.absolutePath)) {
       s = removeDotSegments(s)
@@ -201,12 +201,12 @@ function serialize (cmpts, opts) {
     uriTokens.push(s)
   }
 
-  if (components.query !== undefined) {
-    uriTokens.push('?', components.query)
+  if (component.query !== undefined) {
+    uriTokens.push('?', component.query)
   }
 
-  if (components.fragment !== undefined) {
-    uriTokens.push('#', components.fragment)
+  if (component.fragment !== undefined) {
+    uriTokens.push('#', component.fragment)
   }
   return uriTokens.join('')
 }
@@ -329,7 +329,7 @@ const fastUri = {
   SCHEMES,
   normalize,
   resolve,
-  resolveComponents,
+  resolveComponent,
   equal,
   serialize,
   parse
