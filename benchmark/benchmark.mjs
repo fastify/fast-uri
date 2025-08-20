@@ -1,6 +1,6 @@
 import { Bench } from 'tinybench'
 import { fastUri } from '../index.js'
-import { parse as uriJsParse, serialize as uriJsSerialize, resolve as uriJsResolve } from 'uri-js'
+import { parse as uriJsParse, serialize as uriJsSerialize, resolve as uriJsResolve, equal as uriJsEqual } from 'uri-js'
 
 const base = 'uri://a/b/c/d;p?q'
 
@@ -10,10 +10,17 @@ const ipv6 = '//[2001:db8::7]'
 const urn = 'urn:foo:a123,456'
 const urnuuid = 'urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6'
 
+const urnuuidComponent = {
+  scheme: 'urn',
+  nid: 'uuid',
+  uuid: 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6'
+}
+
 const {
   parse: fastUriParse,
   serialize: fastUriSerialize,
-  resolve: fastUriResolve
+  resolve: fastUriResolve,
+  equal: fastUriEqual,
 } = fastUri
 
 // Initialization as there is a lot to parse at first
@@ -62,6 +69,12 @@ benchFastUri.add('fast-uri: parse URN uuid', function () {
 })
 benchUriJs.add('urijs: parse URN uuid', function () {
   uriJsParse(urnuuid)
+})
+benchFastUri.add('fast-uri: serialize URN uuid', function () {
+  fastUriSerialize(urnuuidComponent)
+})
+benchUriJs.add('uri-js: serialize URN uuid', function () {
+  uriJsSerialize(urnuuidComponent)
 })
 benchFastUri.add('fast-uri: serialize uri', function () {
   fastUriSerialize({
@@ -124,6 +137,13 @@ benchFastUri.add('fast-uri: resolve', function () {
 })
 benchUriJs.add('urijs: resolve', function () {
   uriJsResolve(base, '../../../g')
+})
+
+benchFastUri.add('fast-uri: equal', function () {
+  fastUriEqual('example://a/b/c/%7Bfoo%7D', 'eXAMPLE://a/./b/../b/%63/%7bfoo%7d')
+})
+benchUriJs.add('urijs: equal', function () {
+  uriJsEqual('example://a/b/c/%7Bfoo%7D', 'eXAMPLE://a/./b/../b/%63/%7bfoo%7d')
 })
 
 await benchFastUri.run()

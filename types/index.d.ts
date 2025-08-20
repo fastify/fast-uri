@@ -10,6 +10,11 @@ declare namespace fastUri {
     query?: string;
     fragment?: string;
     reference?: string;
+    nid?: string;
+    nss?: string;
+    resourceName?: string;
+    secure?: boolean;
+    uuid?: string;
     error?: string;
   }
   export interface Options {
@@ -19,6 +24,8 @@ declare namespace fastUri {
     domainHost?: boolean;
     absolutePath?: boolean;
     tolerant?: boolean;
+    skipEscape?: boolean;
+    nid?: string;
   }
 
   /**
