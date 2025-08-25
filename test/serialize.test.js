@@ -122,7 +122,6 @@ test('URN serialize', (t) => {
     uuid: 'notauuid-7dec-11d0-a765-00a0c91e6bf6'
   }
   t.equal(fastURI.serialize(uuidcomponents), 'urn:uuid:notauuid-7dec-11d0-a765-00a0c91e6bf6')
-  t.equal(fastURI.serialize(uuidcomponents), 'urn:uuid:notauuid-7dec-11d0-a765-00a0c91e6bf6')
 
   uuidcomponents = {
     scheme: 'urn',
