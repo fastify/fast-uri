@@ -42,6 +42,18 @@ test('URI parse', (t) => {
   t.equal(components.query, undefined, 'query')
   t.equal(components.fragment, undefined, 'fragment')
 
+  // non simple domain with schemeHandler
+  components = fastURI.parse('https://foo-bar-123.example.com')
+  t.equal(components.error, undefined, 'host errors')
+  t.equal(components.scheme, 'https', 'scheme')
+  // t.equal(components.authority, "", "authority");
+  t.equal(components.userinfo, undefined, 'userinfo')
+  t.equal(components.host, 'foo-bar-123.example.com', 'host non simple domain')
+  t.equal(components.port, undefined, 'port')
+  t.equal(components.path, '', 'path')
+  t.equal(components.query, undefined, 'query')
+  t.equal(components.fragment, undefined, 'fragment')
+
   // port
   components = fastURI.parse('//:')
   t.equal(components.error, undefined, 'port errors')

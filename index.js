@@ -1,5 +1,6 @@
 'use strict'
 
+const url = require('node:url')
 const { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizeComponentEncoding, isIPv4, nonSimpleDomain } = require('./lib/utils')
 const { SCHEMES, getSchemeHandler } = require('./lib/schemes')
 
@@ -290,7 +291,7 @@ function parse (uri, opts) {
       if (parsed.host && (options.domainHost || (schemeHandler && schemeHandler.domainHost)) && isIP === false && nonSimpleDomain(parsed.host)) {
         // convert Unicode IDN -> ASCII IDN
         try {
-          parsed.host = URL.domainToASCII(parsed.host.toLowerCase())
+          parsed.host = url.domainToASCII(parsed.host.toLowerCase())
         } catch (e) {
           parsed.error = parsed.error || "Host's domain name can not be converted to ASCII: " + e
         }
