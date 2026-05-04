@@ -1,6 +1,6 @@
 'use strict'
 
-const { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizeComponentEncoding, isIPv4, nonSimpleDomain } = require('./lib/utils')
+const { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, escapePreservingEscapes, isIPv4, nonSimpleDomain } = require('./lib/utils')
 const { SCHEMES, getSchemeHandler } = require('./lib/schemes')
 
 /**
@@ -107,17 +107,15 @@ function resolveComponent (base, relative, options, skipNormalization) {
  */
 function equal (uriA, uriB, options) {
   if (typeof uriA === 'string') {
-    uriA = unescape(uriA)
-    uriA = serialize(normalizeComponentEncoding(parse(uriA, options), true), { ...options, skipEscape: true })
+    uriA = serialize(parse(uriA, options), options)
   } else if (typeof uriA === 'object') {
-    uriA = serialize(normalizeComponentEncoding(uriA, true), { ...options, skipEscape: true })
+    uriA = serialize(uriA, options)
   }
 
   if (typeof uriB === 'string') {
-    uriB = unescape(uriB)
-    uriB = serialize(normalizeComponentEncoding(parse(uriB, options), true), { ...options, skipEscape: true })
+    uriB = serialize(parse(uriB, options), options)
   } else if (typeof uriB === 'object') {
-    uriB = serialize(normalizeComponentEncoding(uriB, true), { ...options, skipEscape: true })
+    uriB = serialize(uriB, options)
   }
 
   return uriA.toLowerCase() === uriB.toLowerCase()
@@ -156,13 +154,13 @@ function serialize (cmpts, opts) {
 
   if (component.path !== undefined) {
     if (!options.skipEscape) {
-      component.path = escape(component.path)
+      component.path = escapePreservingEscapes(component.path)
 
       if (component.scheme !== undefined) {
         component.path = component.path.split('%3A').join(':')
       }
     } else {
-      component.path = unescape(component.path)
+      component.path = normalizePercentEncoding(component.path)
     }
   }
 
@@ -308,7 +306,7 @@ function parse (uri, opts) {
         }
       }
       if (parsed.path) {
-        parsed.path = escape(unescape(parsed.path))
+        parsed.path = normalizePathEncoding(parsed.path)
       }
       if (parsed.fragment) {
         parsed.fragment = encodeURI(decodeURIComponent(parsed.fragment))

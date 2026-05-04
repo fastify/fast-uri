@@ -66,6 +66,17 @@ uri.resolve("uri://a/b/c/d?q", "../../g")
 "uri://a/g"
 ```
 
+### Normalize
+
+```js
+const uri = require('fast-uri')
+uri.normalize('http://example.com/a%2Fb')
+// Output
+"http://example.com/a%2Fb"
+```
+
+Reserved path escapes such as `%2F` and `%2E` are preserved as path data during normalization and comparison.
+
 ### Equal
 
 ```js
