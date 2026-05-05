@@ -391,7 +391,6 @@ function normalizeComparableURI (uri, opts) {
   }
 }
 
-
 const fastUri = {
   SCHEMES,
   normalize,
