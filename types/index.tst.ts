@@ -1,6 +1,5 @@
 import uri, {
   type URIComponent,
-  type Options,
 } from '..'
 import { expect } from 'tstyche'
 
