@@ -55,7 +55,7 @@
     "test:browser": "npm run test:browser:chromium && npm run test:browser:firefox && npm run test:browser:webkit",
     "test:unit": "tape test/**/*.js",
     "test:unit:dev": "npm run test:unit -- --coverage-report=html",
-    "test:typescript": "tsd"
+    "test:typescript": "tstyche"
   },
   "devDependencies": {
     "ajv": "^8.16.0",
@@ -63,6 +63,6 @@
     "neostandard": "^0.13.0",
     "playwright-test": "^14.1.12",
     "tape": "^5.8.1",
-    "tsd": "^0.33.0"
+    "tstyche": "^7.0.0"
   }
 }
