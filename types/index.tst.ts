@@ -14,5 +14,3 @@ const parsed2 = uri.parse('foo', {
 })
 
 expect(parsed2).type.toBe<URIComponent>()
-expect({} as URIComponent).type.toBeAssignableTo<URIComponent>()
-expect({} as Options).type.toBeAssignableTo<Options>()
