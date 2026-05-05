@@ -12,6 +12,8 @@ Dependency-free RFC 3986 URI toolbox.
 
 All of the above functions can accept an additional options argument that is an object that can contain one or more of the following properties:
 
+Malformed authorities and out-of-range ports are reported through the parsed component's `error` field. `normalize()` leaves malformed string inputs unchanged, and `equal()` returns `false` when either string input is malformed.
+
 *	`scheme` (string)
 	Indicates the scheme that the URI should be treated as, overriding the URI's normal scheme parsing behavior.
 
