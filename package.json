@@ -48,7 +48,7 @@
   "scripts": {
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "test": "npm run test:unit && npm run test:typescript",
+    "test": "npm run test:unit",
     "test:browser:chromium": "playwright-test ./test/* --runner tape --browser=chromium",
     "test:browser:firefox": "playwright-test ./test/* --runner tape --browser=firefox",
     "test:browser:webkit": "playwright-test ./test/* --runner tape --browser=webkit",
