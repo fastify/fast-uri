@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: ['20', '22', '24']
+        node-version: ['20', '22', '24', '26']
     steps:
       - uses: actions/checkout@v6
         with:
@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: ['16', '18', '20', '22', '24']
+        node-version: ['16', '18', '20', '22', '24', '26']
     steps:
       - uses: actions/checkout@v6
         with:
@@ -151,4 +151,4 @@ jobs:
     with:
       license-check: true
       lint: true
-      node-versions: '["16", "18", "20", "22", "24"]'
+      node-versions: '["16", "18", "20", "22", "24", "26"]'
