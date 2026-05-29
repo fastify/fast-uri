@@ -28,15 +28,6 @@ declare namespace fastUri {
     nid?: string;
   }
 
-  /**
-   * @deprecated Use Options instead
-   */
-  export type options = Options
-  /**
-   * @deprecated Use URIComponent instead
-   */
-  export type URIComponents = URIComponent
-
   export function normalize (uri: string, opts?: Options): string
   export function normalize (uri: URIComponent, opts?: Options): URIComponent
   export function normalize (uri: any, opts?: Options): any
