@@ -115,3 +115,54 @@ test('URI Equals tolerates malformed fragments', (t) => {
   )
   t.end()
 })
+
+test('URI Equals — raw UTF-8 char equals its percent-encoded UTF-8 form', (t) => {
+  const suite = [
+    // BMP characters
+    { pair: ['http://example.com/日本', 'http://example.com/%E6%97%A5%E6%9C%AC'], result: true },
+    { pair: ['http://example.com/café', 'http://example.com/caf%C3%A9'], result: true },
+    { pair: ['http://example.com/€', 'http://example.com/%E2%82%AC'], result: true },
+    { pair: ['http://example.com/中文', 'http://example.com/%E4%B8%AD%E6%96%87'], result: true },
+    // supplementary plane (emoji, surrogate pairs)
+    { pair: ['http://example.com/🚀', 'http://example.com/%F0%9F%9A%80'], result: true },
+    { pair: ['http://example.com/😀', 'http://example.com/%F0%9F%98%80'], result: true },
+    // mixed encoded + raw in same path
+    { pair: ['http://example.com/users/日本/profile', 'http://example.com/users/%E6%97%A5%E6%9C%AC/profile'], result: true },
+    { pair: ['http://example.com/a/€/b', 'http://example.com/a/%E2%82%AC/b'], result: true }
+  ]
+  runTest(t, suite)
+  t.end()
+})
+
+test('URI Equals — percent-encoded UTF-8 is case-insensitive in hex digits', (t) => {
+  const suite = [
+    { pair: ['http://example.com/caf%C3%A9', 'http://example.com/caf%c3%a9'], result: true },
+    { pair: ['http://example.com/%E6%97%A5', 'http://example.com/%e6%97%a5'], result: true },
+    { pair: ['http://example.com/%F0%9F%9A%80', 'http://example.com/%f0%9f%9a%80'], result: true }
+  ]
+  runTest(t, suite)
+  t.end()
+})
+
+test('URI Equals — different Unicode code points are not equal', (t) => {
+  const suite = [
+    { pair: ['http://example.com/日本', 'http://example.com/中文'], result: false },
+    { pair: ['http://example.com/café', 'http://example.com/cafe'], result: false },
+    { pair: ['http://example.com/🚀', 'http://example.com/🎉'], result: false }
+  ]
+  runTest(t, suite)
+  t.end()
+})
+
+test('URI Equals — Latin-1 byte is not equal to UTF-8 multi-byte encoding', (t) => {
+  // Parser-differential guard: %C3%A9 (UTF-8 for "é") must NOT equal %E9
+  // (raw Latin-1 byte). The old escape() emitted single Latin-1 bytes for
+  // non-ASCII, which would have made these incorrectly compare equal in a
+  // round-tripped URI.
+  const suite = [
+    { pair: ['http://example.com/caf%C3%A9', 'http://example.com/caf%E9'], result: false },
+    { pair: ['http://example.com/%E6%97%A5', 'http://example.com/%E6'], result: false }
+  ]
+  runTest(t, suite)
+  t.end()
+})
