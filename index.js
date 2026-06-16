@@ -252,7 +252,7 @@ function parseWithStatus (uri, opts) {
 
   if (matches) {
     // store each component
-    parsed.scheme = matches[1]
+    parsed.scheme = matches[1] === undefined ? undefined : matches[1].toLowerCase()
     parsed.userinfo = matches[3]
     parsed.host = matches[4]
     parsed.port = parseInt(matches[5], 10)
