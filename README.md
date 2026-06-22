@@ -27,10 +27,10 @@ Malformed authorities and out-of-range ports are reported through the parsed com
 	If set to `true`, the serializer will not resolve a relative `path` component.
 
 *	`unicodeSupport` (boolean, false)
-	If set to `true`, the parser will unescape non-ASCII characters in the parsed output as per [RFC 3987](http://www.ietf.org/rfc/rfc3987.txt).
+	If set to `true`, the parser will unescape non-ASCII characters in the parsed output as per [RFC 3987](https://www.ietf.org/rfc/rfc3987.txt).
 
 *	`domainHost` (boolean, false)
-	If set to `true`, the library will treat the `host` component as a domain name, and convert IDNs (International Domain Names) as per [RFC 5891](http://www.ietf.org/rfc/rfc5891.txt).
+	If set to `true`, the library will treat the `host` component as a domain name, and convert IDNs (International Domain Names) as per [RFC 5891](https://www.ietf.org/rfc/rfc5891.txt).
 
 ### Parse
 
@@ -90,14 +90,14 @@ true
 
 ## Scheme supports
 
-fast-uri supports inserting custom [scheme](http://en.wikipedia.org/wiki/URI_scheme)-dependent processing rules. Currently, fast-uri has built-in support for the following schemes:
+fast-uri supports inserting custom [scheme](https://en.wikipedia.org/wiki/URI_scheme)-dependent processing rules. Currently, fast-uri has built-in support for the following schemes:
 
-*	http \[[RFC 2616](http://www.ietf.org/rfc/rfc2616.txt)\]
-*	https \[[RFC 2818](http://www.ietf.org/rfc/rfc2818.txt)\]
-*	ws \[[RFC 6455](http://www.ietf.org/rfc/rfc6455.txt)\]
-*	wss \[[RFC 6455](http://www.ietf.org/rfc/rfc6455.txt)\]
-*	urn \[[RFC 2141](http://www.ietf.org/rfc/rfc2141.txt)\]
-*	urn:uuid \[[RFC 4122](http://www.ietf.org/rfc/rfc4122.txt)\]
+*	http \[[RFC 2616](https://www.ietf.org/rfc/rfc2616.txt)\]
+*	https \[[RFC 2818](https://www.ietf.org/rfc/rfc2818.txt)\]
+*	ws \[[RFC 6455](https://www.ietf.org/rfc/rfc6455.txt)\]
+*	wss \[[RFC 6455](https://www.ietf.org/rfc/rfc6455.txt)\]
+*	urn \[[RFC 2141](https://www.ietf.org/rfc/rfc2141.txt)\]
+*	urn:uuid \[[RFC 4122](https://www.ietf.org/rfc/rfc4122.txt)\]
 
 
 ## Benchmarks
