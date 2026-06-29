@@ -305,7 +305,7 @@ function parseWithStatus (uri, opts) {
       if (parsed.host && (options.domainHost || (schemeHandler && schemeHandler.domainHost)) && isIP === false && nonSimpleDomain(parsed.host)) {
         // convert Unicode IDN -> ASCII IDN
         try {
-          parsed.host = URL.domainToASCII(parsed.host.toLowerCase())
+          parsed.host = new URL('http://' + parsed.host).hostname
         } catch (e) {
           parsed.error = parsed.error || "Host's domain name can not be converted to ASCII: " + e
         }
