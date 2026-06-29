@@ -29,6 +29,15 @@ test('removeDotSegments', (t) => {
   // https://github.com/fastify/fast-uri/issues/139
   testCases.push(['WS:/WS://1305G130505:1&%0D:1&C(XXXXX*)))))))XXX130505:UUVUaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa$aaaaaaaaaaaa13a',
     'WS:/WS://1305G130505:1&%0D:1&C(XXXXX*)))))))XXX130505:UUVUaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa$aaaaaaaaaaaa13a'])
+  // trailing empty segments must be preserved: RFC 3986 5.2.4 only removes
+  // complete "." / ".." segments, never an empty segment
+  testCases.push(['//', '//'])
+  testCases.push(['/foo//', '/foo//'])
+  testCases.push(['/a/b//', '/a/b//'])
+  testCases.push(['/x//y//z', '/x//y//z'])
+  // "." / ".." segments still collapse
+  testCases.push(['/a/b/c/./../../g', '/a/g'])
+  testCases.push(['/.', '/'])
 
   t.plan(testCases.length)
 
