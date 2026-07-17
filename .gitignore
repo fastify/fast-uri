@@ -148,5 +148,10 @@ yarn.lock
 .vscode
 .idea
 
-#tap files
+# tap files
 .tap/
+
+# AI files
+.pi
+AGENTS.md
+CLAUDE.md
