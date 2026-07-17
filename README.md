@@ -15,6 +15,8 @@ Dependency free RFC 3986 URI toolbox.
 
 All of the above functions can accept an additional options argument that is an object that can contain one or more of the following properties:
 
+Malformed authorities and out-of-range ports are reported through the parsed component's `error` field. `normalize()` leaves malformed string inputs unchanged, and `equal()` returns `false` when either string input is malformed.
+
 *	`scheme` (string)
 	Indicates the scheme that the URI should be treated as, overriding the URI's normal scheme parsing behavior.
 
@@ -68,6 +70,17 @@ uri.resolve("uri://a/b/c/d?q", "../../g")
 // Output
 "uri://a/g"
 ```
+
+### Normalize
+
+```js
+const uri = require('fast-uri')
+uri.normalize('http://example.com/a%2Fb')
+// Output
+"http://example.com/a%2Fb"
+```
+
+Reserved path escapes such as `%2F` and `%2E` are preserved as path data during normalization and comparison.
 
 ### Equal
 
