@@ -3,6 +3,7 @@
 [![NPM version](https://img.shields.io/npm/v/fast-uri.svg?style=flat)](https://www.npmjs.com/package/fast-uri)
 [![CI](https://github.com/fastify/fast-uri/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/fastify/fast-uri/actions/workflows/ci.yml)
 [![neostandard javascript style](https://img.shields.io/badge/code_style-neostandard-brightgreen?style=flat)](https://github.com/neostandard/neostandard)
+[![OSSF Scorecard](https://api.scorecard.dev/projects/github.com/fastify/fast-uri/badge)](https://scorecard.dev/viewer/?uri=github.com/fastify/fast-uri)
 
 Dependency-free RFC 3986 URI toolbox.
 
