@@ -158,7 +158,8 @@ test('Mailto serialization preserves delimiters, escapes, and input state', (t) 
   }
   const valueURI = fastURI.serialize(valueComponent)
   t.equal(valueURI, 'mailto:user@example.org?x=a%26b', 'ampersand in header value is encoded')
-  t.deepEqual(fastURI.parse(valueURI).headers, { x: 'a&b' }, 'header value round-trips')
+  // spread: `headers` has a null prototype, which t.deepEqual compares strictly
+  t.deepEqual({ ...fastURI.parse(valueURI).headers }, { x: 'a&b' }, 'header value round-trips')
 
   const nameComponent = {
     scheme: 'mailto',
@@ -167,7 +168,7 @@ test('Mailto serialization preserves delimiters, escapes, and input state', (t) 
   }
   const nameURI = fastURI.serialize(nameComponent)
   t.equal(nameURI, 'mailto:user@example.org?x%26y=z', 'ampersand in header name is encoded')
-  t.deepEqual(fastURI.parse(nameURI).headers, { 'x&y': 'z' }, 'header name round-trips')
+  t.deepEqual({ ...fastURI.parse(nameURI).headers }, { 'x&y': 'z' }, 'header name round-trips')
 
   t.equal(
     fastURI.serialize({ scheme: 'mailto', to: ['user@example.org'], subject: 'a%2fb' }),
@@ -189,5 +190,72 @@ test('Mailto serialization preserves delimiters, escapes, and input state', (t) 
   const expected = JSON.parse(JSON.stringify(immutableComponent))
   fastURI.serialize(immutableComponent)
   t.deepEqual(immutableComponent, expected, 'recipient and header containers are not mutated')
+  t.end()
+})
+
+test('Mailto serialization does not let recipient data inject URI structure', (t) => {
+  // A recipient domain must never reach the output with a delimiter intact:
+  // "?" would inject header fields and "#" a fragment.
+  const cases = [
+    ['user@example.org?subject=Injected', 'mailto:user@example.org%3Fsubject%3Dinjected'],
+    ['user@example.org#frag', 'mailto:user@example.org%23frag'],
+    // domain literals accept the full RFC 5321 dcontent range, which includes "?"
+    ['user@[x?subject=Injected]', 'mailto:user@[x%3Fsubject%3Dinjected]'],
+    // "," is the recipient delimiter, so it must be encoded inside an address
+    ['a,b@example.org', 'mailto:a%2Cb@example.org']
+  ]
+
+  for (const [recipient, expected] of cases) {
+    const uri = fastURI.serialize({ scheme: 'mailto', to: [recipient] })
+    t.equal(uri, expected, 'encodes delimiters in ' + recipient)
+    const reparsed = fastURI.parse(uri)
+    t.deepEqual(reparsed.to, [recipient.toLowerCase()], 'round-trips ' + recipient)
+    t.equal(reparsed.subject, undefined, 'no subject injected by ' + recipient)
+    t.equal(reparsed.headers, undefined, 'no headers injected by ' + recipient)
+    t.equal(reparsed.fragment, undefined, 'no fragment injected by ' + recipient)
+  }
+
+  t.equal(
+    fastURI.serialize({ scheme: 'mailto', to: ['a@x.test', 'b@y.test'] }),
+    'mailto:a@x.test,b@y.test',
+    'the joining comma between recipients stays literal'
+  )
+  t.equal(
+    fastURI.serialize({ scheme: 'mailto', to: ['user@[IPv6:2001:db8::1]'] }),
+    'mailto:user@[ipv6:2001:db8::1]',
+    'a valid domain literal keeps its delimiters'
+  )
+  t.equal(
+    fastURI.serialize({ scheme: 'mailto', to: ['user@納豆.example.org'] }),
+    'mailto:user@xn--99zt52a.example.org',
+    'Unicode domain is still converted to ASCII'
+  )
+  t.equal(
+    fastURI.serialize({ scheme: 'mailto', to: ['user@納豆.example.org'] }, { unicodeSupport: true }),
+    'mailto:user@納豆.example.org',
+    'Unicode domain is still preserved when requested'
+  )
+  t.end()
+})
+
+test('Mailto serialization ignores a caller-supplied path', (t) => {
+  // `to` is the only recipient source. A raw path has not been through this
+  // handler's encoder, and the handler sets `skipEscape`, so emitting it would
+  // put unescaped data (including CR/LF) straight into the URI.
+  t.equal(
+    fastURI.serialize({ scheme: 'mailto', path: 'a@b.test\r\nBcc: evil@evil.test' }),
+    'mailto:',
+    'a path containing CRLF is dropped, not emitted raw'
+  )
+  t.equal(
+    fastURI.serialize({ scheme: 'mailto', path: 'user@example.org?subject=Injected' }),
+    'mailto:',
+    'a path containing header fields is dropped'
+  )
+  t.equal(
+    fastURI.serialize({ scheme: 'mailto', to: ['a@b.test'], path: 'ignored?x=1' }),
+    'mailto:a@b.test',
+    'a path is ignored when recipients are present'
+  )
   t.end()
 })

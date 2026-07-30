@@ -376,3 +376,21 @@ test('Mailto parsing handles domain literals, empty queries, and malformed heade
   t.deepEqual(malformedHeaders.to, ['joe@example.com'], 'path recipient is retained')
   t.end()
 })
+
+test('Mailto headers use a null prototype', (t) => {
+  // Header names come from untrusted input, so a lookup must not resolve to an
+  // inherited member of Object.prototype.
+  const parsed = fastURI.parse('mailto:a@b.test?blat=foop')
+  t.equal(Object.getPrototypeOf(parsed.headers), null, 'headers has no prototype')
+  t.equal(parsed.headers.toString, undefined, 'inherited members do not leak')
+  t.equal(parsed.headers.constructor, undefined, 'constructor does not leak')
+
+  // With a null prototype "__proto__" is an ordinary key rather than a setter,
+  // so it round-trips instead of being silently discarded.
+  const polluted = fastURI.parse('mailto:a@b.test?__proto__=x')
+  t.deepEqual(Object.keys(polluted.headers), ['__proto__'], '__proto__ is kept as an own key')
+  t.equal(fastURI.serialize(polluted), 'mailto:a@b.test?__proto__=x', '__proto__ round-trips')
+  t.equal({}.x, undefined, 'Object.prototype is not polluted')
+  t.equal(Object.getPrototypeOf({}), Object.prototype, 'Object.prototype is intact')
+  t.end()
+})
