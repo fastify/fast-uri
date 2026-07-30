@@ -123,6 +123,8 @@ function equal (uriA, uriB, options) {
   return normalizedA !== undefined && normalizedB !== undefined && normalizedA.toLowerCase() === normalizedB.toLowerCase()
 }
 
+const SCHEME_PREFIX = /^([^#/:?]+):/u
+
 /**
  * @param {import ('./types/index').URIComponent|string} uri
  * @param {import('./types/index').Options} [options]
@@ -136,7 +138,7 @@ function getEffectiveScheme (uri, options) {
     return String(uri.scheme).toLowerCase()
   }
   if (typeof uri === 'string') {
-    const match = uri.match(/^([^#/:?]+):/u)
+    const match = uri.match(SCHEME_PREFIX)
     return match ? match[1].toLowerCase() : undefined
   }
 }

@@ -238,6 +238,40 @@ test('Mailto serialization does not let recipient data inject URI structure', (t
   t.end()
 })
 
+test('Mailto encoding is consistent across the fast/slow path boundary', (t) => {
+  // The encoder returns the input untouched when every character is allowed,
+  // and only then falls back to the per-character loop. Both branches must
+  // agree on what needs escaping.
+  const base = { scheme: 'mailto', to: ['user@example.org'] }
+
+  t.equal(
+    fastURI.serialize({ ...base, headers: { 'In-Reply-To': 'plain-value' } }),
+    'mailto:user@example.org?In-Reply-To=plain-value',
+    'fully allowed name and value are emitted verbatim'
+  )
+  t.equal(
+    fastURI.serialize({ ...base, headers: { 'x y': '<a>&b c' } }),
+    'mailto:user@example.org?x%20y=%3Ca%3E%26b%20c',
+    'disallowed characters are escaped in both name and value'
+  )
+  t.equal(
+    fastURI.serialize({ ...base, body: 'send current-issue\r\nsend index' }),
+    'mailto:user@example.org?body=send%20current-issue%0D%0Asend%20index',
+    'space and CRLF are escaped in a body'
+  )
+  t.equal(
+    fastURI.serialize({ ...base, subject: 'a%2fb%GGc' }),
+    'mailto:user@example.org?subject=a%2Fb%25GGc',
+    'valid escapes are uppercased and invalid ones escaped in one pass'
+  )
+  t.equal(
+    fastURI.serialize({ scheme: 'mailto', to: ['a.b-c_d~e!f@example.org'] }),
+    'mailto:a.b-c_d~e!f@example.org',
+    'an entirely allowed local part takes the fast path unchanged'
+  )
+  t.end()
+})
+
 test('Mailto serialization ignores a caller-supplied path', (t) => {
   // `to` is the only recipient source. A raw path has not been through this
   // handler's encoder, and the handler sets `skipEscape`, so emitting it would

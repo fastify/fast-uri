@@ -377,6 +377,78 @@ test('Mailto parsing handles domain literals, empty queries, and malformed heade
   t.end()
 })
 
+test('Mailto parsing folds lone surrogates in raw input', (t) => {
+  // The handler sets `skipNormalize`, so it must fold lone surrogates itself --
+  // the generic query/path normalizers no longer run to do it.
+  const lone = '\uD800'
+  const trailing = '\uDC00'
+
+  t.deepEqual(
+    // spread: `headers` has a null prototype, which t.deepEqual compares strictly
+    { ...fastURI.parse('mailto:a@b.test?x=' + lone).headers },
+    { x: '�' },
+    'lone high surrogate in a header value becomes U+FFFD'
+  )
+  t.equal(
+    fastURI.parse('mailto:a@b.test?subject=' + trailing).subject,
+    '�',
+    'lone low surrogate in a subject becomes U+FFFD'
+  )
+  t.deepEqual(
+    fastURI.parse('mailto:' + lone + '@b.test').to,
+    ['�@b.test'],
+    'lone surrogate in a local part becomes U+FFFD'
+  )
+  t.deepEqual(
+    fastURI.parse('mailto:a@b.test?subject=😀').subject,
+    '😀',
+    'a valid surrogate pair is left intact'
+  )
+  t.end()
+})
+
+test('Mailto domain fast path agrees with the WHATWG parser', (t) => {
+  // `mailtoNormalizeDomain` skips `new URL` when `nonSimpleMailtoDomain` is
+  // false. Every domain here must come out the same either way -- especially the
+  // all-numeric last labels, which `new URL` reads as IPv4 shorthand.
+  const domains = [
+    'example.com',
+    'example.org',
+    'mail2.example.org',
+    's3.amazonaws.com',
+    'ex4mple.com',
+    '_dmarc.example.com',
+    '-a.com',
+    'a..b',
+    'a.com.',
+    '1.2.3',
+    '127.1',
+    '12',
+    '0x7f.1',
+    '9.9.9.9',
+    '1.2.3.4'
+  ]
+
+  for (const domain of domains) {
+    const parsed = fastURI.parse('mailto:user@' + domain)
+    let expected
+    try {
+      const url = new URL('http://' + domain)
+      const invalid = url.username || url.password || url.port ||
+        url.pathname !== '/' || url.search || url.hash || !url.hostname
+      expected = invalid ? domain : url.hostname
+    } catch {
+      expected = domain
+    }
+    t.deepEqual(parsed.to, ['user@' + expected], 'matches new URL for ' + domain)
+  }
+
+  // The fast path must not be taken for a domain whose last label is numeric.
+  t.deepEqual(fastURI.parse('mailto:user@1.2.3').to, ['user@1.2.0.3'], 'IPv4 shorthand is still applied')
+  t.deepEqual(fastURI.parse('mailto:user@mail2.example.org').to, ['user@mail2.example.org'], 'digits stay on the fast path')
+  t.end()
+})
+
 test('Mailto headers use a null prototype', (t) => {
   // Header names come from untrusted input, so a lookup must not resolve to an
   // inherited member of Object.prototype.
