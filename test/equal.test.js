@@ -107,6 +107,18 @@ test('WSS Equal', (t) => {
   t.end()
 })
 
+test('Mailto Equal normalizes domains without folding message data', (t) => {
+  const suite = [
+    { pair: ['mailto:user@EXAMPLE.ORG', 'mailto:user@example.org'], result: true },
+    { pair: ['mailto:User@example.org', 'mailto:user@example.org'], result: false },
+    { pair: ['mailto:user@example.org?subject=Hello', 'mailto:user@example.org?subject=hello'], result: false },
+    { pair: ['mailto:user@example.org?body=Hello', 'mailto:user@example.org?body=hello'], result: false },
+    { pair: ['mailto:user@example.org?x=Hello', 'mailto:user@example.org?x=hello'], result: false }
+  ]
+  runTest(t, suite)
+  t.end()
+})
+
 test('URI Equals tolerates malformed fragments', (t) => {
   t.equal(
     fastURI.equal('http://example.com/#%E0%A4A', 'http://example.com/#%E0%A4A'),

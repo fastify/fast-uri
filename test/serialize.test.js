@@ -149,3 +149,45 @@ test('URN NID Override', (t) => {
   t.equal(fastURI.serialize(components, { nid: 'uuid' }), 'urn:foo:f81d4fae-7dec-11d0-a765-00a0c91e6bf6')
   t.end()
 })
+
+test('Mailto serialization preserves delimiters, escapes, and input state', (t) => {
+  const valueComponent = {
+    scheme: 'mailto',
+    to: ['user@example.org'],
+    headers: { x: 'a&b' }
+  }
+  const valueURI = fastURI.serialize(valueComponent)
+  t.equal(valueURI, 'mailto:user@example.org?x=a%26b', 'ampersand in header value is encoded')
+  t.deepEqual(fastURI.parse(valueURI).headers, { x: 'a&b' }, 'header value round-trips')
+
+  const nameComponent = {
+    scheme: 'mailto',
+    to: ['user@example.org'],
+    headers: { 'x&y': 'z' }
+  }
+  const nameURI = fastURI.serialize(nameComponent)
+  t.equal(nameURI, 'mailto:user@example.org?x%26y=z', 'ampersand in header name is encoded')
+  t.deepEqual(fastURI.parse(nameURI).headers, { 'x&y': 'z' }, 'header name round-trips')
+
+  t.equal(
+    fastURI.serialize({ scheme: 'mailto', to: ['user@example.org'], subject: 'a%2fb' }),
+    'mailto:user@example.org?subject=a%2Fb',
+    'valid percent escape is preserved and uppercased'
+  )
+  t.equal(
+    fastURI.serialize({ scheme: 'mailto', to: ['user@example.org'], subject: 'a%GGb' }),
+    'mailto:user@example.org?subject=a%25GGb',
+    'malformed percent escape is encoded'
+  )
+
+  const immutableComponent = {
+    scheme: 'mailto',
+    to: ['café@EXAMPLE.ORG'],
+    subject: 'hello',
+    headers: { cc: 'other@example.org' }
+  }
+  const expected = JSON.parse(JSON.stringify(immutableComponent))
+  fastURI.serialize(immutableComponent)
+  t.deepEqual(immutableComponent, expected, 'recipient and header containers are not mutated')
+  t.end()
+})

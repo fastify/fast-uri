@@ -323,3 +323,56 @@ test('URI parse', (t) => {
   t.equal(components.error, 'URN can not be parsed.')
   t.end()
 })
+
+test('Mailto parsing normalizes Unicode domains according to options', (t) => {
+  t.deepEqual(
+    fastURI.parse('mailto:user@納豆.example.org').to,
+    ['user@xn--99zt52a.example.org'],
+    'Unicode domain defaults to ASCII'
+  )
+  t.deepEqual(
+    fastURI.parse('mailto:user@納豆.example.org', { unicodeSupport: true }).to,
+    ['user@納豆.example.org'],
+    'Unicode domain is preserved when requested'
+  )
+  t.deepEqual(
+    fastURI.parse('mailto:user@xn--99zt52a.example.org', { unicodeSupport: true }).to,
+    ['user@xn--99zt52a.example.org'],
+    'existing punycode remains unchanged in Unicode mode'
+  )
+  t.end()
+})
+
+test('Mailto parsing preserves and reports malformed recipient domains', (t) => {
+  const cases = [
+    ['mailto:user@example.org:25', 'user@example.org:25'],
+    ['mailto:user@example.org/path', 'user@example.org/path'],
+    ['mailto:user@example.org%40evil.test', 'user@example.org@evil.test'],
+    ['mailto:user@example.org%3Fquery', 'user@example.org?query'],
+    ['mailto:user@example.org%23fragment', 'user@example.org#fragment'],
+    ['mailto:user@[broken', 'user@[broken'],
+    ['mailto:user', 'user']
+  ]
+
+  for (const [uri, recipient] of cases) {
+    const parsed = fastURI.parse(uri)
+    t.equal(parsed.error, 'URI mailto has an invalid recipient domain.', 'error for ' + uri)
+    t.deepEqual(parsed.to, [recipient], 'recipient is preserved for ' + uri)
+  }
+  t.end()
+})
+
+test('Mailto parsing handles domain literals, empty queries, and malformed headers', (t) => {
+  const literal = fastURI.parse('mailto:user@[IPv6:2001:db8::1]')
+  t.equal(literal.error, undefined, 'valid domain literal has no error')
+  t.deepEqual(literal.to, ['user@[ipv6:2001:db8::1]'], 'domain literal is preserved')
+
+  const emptyQuery = fastURI.parse('mailto:user@example.org?')
+  t.equal(emptyQuery.query, undefined, 'empty query is cleared')
+  t.equal(emptyQuery.headers, undefined, 'empty query does not create a header')
+
+  const malformedHeaders = fastURI.parse('mailto:joe@example.com?cc=bob@example.com?body=hello')
+  t.equal(malformedHeaders.error, 'URI mailto has malformed header fields.', 'malformed fields set an error')
+  t.deepEqual(malformedHeaders.to, ['joe@example.com'], 'path recipient is retained')
+  t.end()
+})

@@ -497,5 +497,26 @@
       "subject": "Test",
       "body": "NATTO"
     }
+  ],
+  [
+    "mailto:addr1@an.example,addr2@an.example",
+    {
+      "scheme": "mailto",
+      "reference": "absolute",
+      "to": [
+        "addr1@an.example",
+        "addr2@an.example"
+      ]
+    }
+  ],
+  [
+    "mailto:user@example.org?",
+    {
+      "scheme": "mailto",
+      "reference": "absolute",
+      "to": [
+        "user@example.org"
+      ]
+    }
   ]
 ]
