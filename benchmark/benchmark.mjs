@@ -10,6 +10,21 @@ const ipv6 = '//[2001:db8::7]'
 const urn = 'urn:foo:a123,456'
 const urnuuid = 'urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6'
 
+const mailtoSimple = 'mailto:chris@example.com'
+const mailtoWithSubject = 'mailto:infobot@example.com?subject=current-issue'
+const mailtoWithBody = 'mailto:infobot@example.com?body=send%20current-issue%0D%0Asend%20index'
+const mailtoWithHeaders = 'mailto:list@example.org?In-Reply-To=%3C3469A91.D10AF4C@example.com%3E'
+const mailtoMultiple = 'mailto:joe@example.com,alice@example.org?subject=Test&body=NATTO'
+const mailtoEncoded = 'mailto:%22oh%5C%5Cno%22@example.org'
+
+const mailtoComponent = {
+  scheme: 'mailto',
+  to: ['chris@example.com'],
+  subject: 'current-issue',
+  body: 'send current-issue\r\nsend index',
+  headers: { 'In-Reply-To': '<3469A91.D10AF4C@example.com>' }
+}
+
 const urnuuidComponent = {
   scheme: 'urn',
   nid: 'uuid',
@@ -144,6 +159,62 @@ benchFastUri.add('fast-uri: equal', function () {
 })
 benchUriJs.add('urijs: equal', function () {
   uriJsEqual('example://a/b/c/%7Bfoo%7D', 'eXAMPLE://a/./b/../b/%63/%7bfoo%7d')
+})
+
+benchFastUri.add('fast-uri: parse mailto simple', function () {
+  fastUriParse(mailtoSimple)
+})
+benchUriJs.add('urijs: parse mailto simple', function () {
+  uriJsParse(mailtoSimple)
+})
+
+benchFastUri.add('fast-uri: parse mailto subject', function () {
+  fastUriParse(mailtoWithSubject)
+})
+benchUriJs.add('urijs: parse mailto subject', function () {
+  uriJsParse(mailtoWithSubject)
+})
+
+benchFastUri.add('fast-uri: parse mailto body CRLF', function () {
+  fastUriParse(mailtoWithBody)
+})
+benchUriJs.add('urijs: parse mailto body CRLF', function () {
+  uriJsParse(mailtoWithBody)
+})
+
+benchFastUri.add('fast-uri: parse mailto headers', function () {
+  fastUriParse(mailtoWithHeaders)
+})
+benchUriJs.add('urijs: parse mailto headers', function () {
+  uriJsParse(mailtoWithHeaders)
+})
+
+benchFastUri.add('fast-uri: parse mailto multi recipient', function () {
+  fastUriParse(mailtoMultiple)
+})
+benchUriJs.add('urijs: parse mailto multi recipient', function () {
+  uriJsParse(mailtoMultiple)
+})
+
+benchFastUri.add('fast-uri: parse mailto encoded local', function () {
+  fastUriParse(mailtoEncoded)
+})
+benchUriJs.add('urijs: parse mailto encoded local', function () {
+  uriJsParse(mailtoEncoded)
+})
+
+benchFastUri.add('fast-uri: serialize mailto', function () {
+  fastUriSerialize(mailtoComponent)
+})
+benchUriJs.add('urijs: serialize mailto', function () {
+  uriJsSerialize(mailtoComponent)
+})
+
+benchFastUri.add('fast-uri: serialize+parse mailto round-trip', function () {
+  fastUriSerialize(fastUriParse(mailtoWithBody))
+})
+benchUriJs.add('urijs: serialize+parse mailto round-trip', function () {
+  uriJsSerialize(uriJsParse(mailtoWithBody))
 })
 
 await benchFastUri.run()
