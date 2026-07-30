@@ -111,10 +111,34 @@ function resolveComponent (base, relative, options, skipNormalization) {
  * @returns {boolean}
  */
 function equal (uriA, uriB, options) {
+  const schemeA = getEffectiveScheme(uriA, options)
+  const schemeB = getEffectiveScheme(uriB, options)
   const normalizedA = normalizeComparableURI(uriA, options)
   const normalizedB = normalizeComparableURI(uriB, options)
 
+  if (schemeA === 'mailto' || schemeB === 'mailto') {
+    return schemeA === schemeB && normalizedA !== undefined && normalizedA === normalizedB
+  }
+
   return normalizedA !== undefined && normalizedB !== undefined && normalizedA.toLowerCase() === normalizedB.toLowerCase()
+}
+
+/**
+ * @param {import ('./types/index').URIComponent|string} uri
+ * @param {import('./types/index').Options} [options]
+ * @returns {string|undefined}
+ */
+function getEffectiveScheme (uri, options) {
+  if (options && options.scheme) {
+    return String(options.scheme).toLowerCase()
+  }
+  if (typeof uri === 'object' && uri.scheme) {
+    return String(uri.scheme).toLowerCase()
+  }
+  if (typeof uri === 'string') {
+    const match = uri.match(/^([^#/:?]+):/u)
+    return match ? match[1].toLowerCase() : undefined
+  }
 }
 
 /**

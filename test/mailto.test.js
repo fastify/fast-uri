@@ -172,6 +172,91 @@ test('Mailto serialize: header encoding', (t) => {
   t.end()
 })
 
+test('Mailto serialize: header delimiters round-trip without splitting fields', (t) => {
+  const valueComponent = {
+    scheme: 'mailto',
+    to: ['user@example.org'],
+    headers: { x: 'a&b' }
+  }
+  const valueURI = fastURI.serialize(valueComponent)
+  t.equal(valueURI, 'mailto:user@example.org?x=a%26b', 'ampersand in value is encoded')
+  t.deepEqual(fastURI.parse(valueURI).headers, { x: 'a&b' }, 'value round-trips')
+
+  const nameComponent = {
+    scheme: 'mailto',
+    to: ['user@example.org'],
+    headers: { 'x&y': 'z' }
+  }
+  const nameURI = fastURI.serialize(nameComponent)
+  t.equal(nameURI, 'mailto:user@example.org?x%26y=z', 'ampersand in name is encoded')
+  t.deepEqual(fastURI.parse(nameURI).headers, { 'x&y': 'z' }, 'name round-trips')
+  t.end()
+})
+
+test('Mailto serialize: Unicode uses valid UTF-8 percent encoding', (t) => {
+  const component = {
+    scheme: 'mailto',
+    to: ['😀@example.org'],
+    subject: '😀',
+    body: 'go 🚀',
+    headers: { x: '😀' }
+  }
+  const uri = fastURI.serialize(component)
+  t.equal(
+    uri,
+    'mailto:%F0%9F%98%80@example.org?x=%F0%9F%98%80&subject=%F0%9F%98%80&body=go%20%F0%9F%9A%80',
+    'supplementary characters use four-byte UTF-8'
+  )
+  t.doesNotThrow(() => decodeURIComponent(uri), 'serialized URI can be decoded')
+  const parsed = fastURI.parse(uri)
+  t.deepEqual(parsed.to, ['😀@example.org'], 'local part round-trips')
+  t.equal(parsed.subject, '😀', 'subject round-trips')
+  t.equal(parsed.body, 'go 🚀', 'body round-trips')
+  t.deepEqual(parsed.headers, { x: '😀' }, 'custom header round-trips')
+  t.end()
+})
+
+test('Mailto serialize: lone surrogates become U+FFFD', (t) => {
+  t.equal(
+    fastURI.serialize({ scheme: 'mailto', to: ['user@example.org'], subject: '\uD800' }),
+    'mailto:user@example.org?subject=%EF%BF%BD',
+    'lone high surrogate'
+  )
+  t.equal(
+    fastURI.serialize({ scheme: 'mailto', to: ['user@example.org'], body: '\uDC00' }),
+    'mailto:user@example.org?body=%EF%BF%BD',
+    'lone low surrogate'
+  )
+  t.end()
+})
+
+test('Mailto serialize: percent escapes are preserved or escaped', (t) => {
+  t.equal(
+    fastURI.serialize({ scheme: 'mailto', to: ['user@example.org'], subject: 'a%2fb' }),
+    'mailto:user@example.org?subject=a%2Fb',
+    'valid escape is preserved and uppercased'
+  )
+  t.equal(
+    fastURI.serialize({ scheme: 'mailto', to: ['user@example.org'], subject: 'a%GGb' }),
+    'mailto:user@example.org?subject=a%25GGb',
+    'malformed escape has its percent sign encoded'
+  )
+  t.end()
+})
+
+test('Mailto serialize: input components are not mutated', (t) => {
+  const component = {
+    scheme: 'mailto',
+    to: ['café@EXAMPLE.ORG'],
+    subject: 'hello',
+    headers: { cc: 'other@example.org' }
+  }
+  const expected = JSON.parse(JSON.stringify(component))
+  fastURI.serialize(component)
+  t.deepEqual(component, expected, 'recipient and header containers remain unchanged')
+  t.end()
+})
+
 test('Mailto serialize: local-part encoding', (t) => {
   t.equal(
     fastURI.serialize({ scheme: 'mailto', to: ['gorby%25kremvax@example.com'] }),
@@ -213,6 +298,96 @@ test('Mailto equals: cross-form normalization', (t) => {
     true,
     '?to= only == mixed path + ?to='
   )
+  t.end()
+})
+
+test('Mailto domain normalization honors unicodeSupport', (t) => {
+  t.deepEqual(
+    fastURI.parse('mailto:user@納豆.example.org').to,
+    ['user@xn--99zt52a.example.org'],
+    'Unicode domain defaults to ASCII'
+  )
+  t.deepEqual(
+    fastURI.parse('mailto:user@納豆.example.org', { unicodeSupport: true }).to,
+    ['user@納豆.example.org'],
+    'Unicode domain is preserved when requested'
+  )
+  t.deepEqual(
+    fastURI.parse('mailto:user@xn--99zt52a.example.org', { unicodeSupport: true }).to,
+    ['user@xn--99zt52a.example.org'],
+    'existing punycode remains unchanged in Unicode mode'
+  )
+  t.end()
+})
+
+test('Mailto parse: malformed domains are preserved and reported', (t) => {
+  const cases = [
+    ['mailto:user@example.org:25', 'user@example.org:25'],
+    ['mailto:user@example.org/path', 'user@example.org/path'],
+    ['mailto:user@example.org%40evil.test', 'user@example.org@evil.test'],
+    ['mailto:user@example.org%3Fquery', 'user@example.org?query'],
+    ['mailto:user@example.org%23fragment', 'user@example.org#fragment'],
+    ['mailto:user@[broken', 'user@[broken'],
+    ['mailto:user', 'user']
+  ]
+
+  for (const [uri, recipient] of cases) {
+    const parsed = fastURI.parse(uri)
+    t.equal(parsed.error, 'URI mailto has an invalid recipient domain.', 'error for ' + uri)
+    t.deepEqual(parsed.to, [recipient], 'recipient is preserved for ' + uri)
+  }
+  t.end()
+})
+
+test('Mailto parse: bracketed domain literals are preserved', (t) => {
+  const parsed = fastURI.parse('mailto:user@[IPv6:2001:db8::1]')
+  t.equal(parsed.error, undefined, 'valid domain literal has no error')
+  t.deepEqual(parsed.to, ['user@[ipv6:2001:db8::1]'], 'domain literal is normalized without URL parsing')
+  t.end()
+})
+
+test('Mailto parse: empty query does not create an empty header', (t) => {
+  const parsed = fastURI.parse('mailto:user@example.org?')
+  t.equal(parsed.query, undefined, 'query is cleared')
+  t.equal(parsed.headers, undefined, 'headers remain undefined')
+  t.end()
+})
+
+test('Mailto equals: domain-only case normalization', (t) => {
+  t.equal(
+    fastURI.equal('mailto:user@EXAMPLE.ORG', 'mailto:user@example.org'),
+    true,
+    'domain comparison remains case-insensitive'
+  )
+  t.equal(
+    fastURI.equal('mailto:User@example.org', 'mailto:user@example.org'),
+    false,
+    'local part remains case-sensitive'
+  )
+  t.equal(
+    fastURI.equal('mailto:user@example.org?subject=Hello', 'mailto:user@example.org?subject=hello'),
+    false,
+    'subject remains case-sensitive'
+  )
+  t.equal(
+    fastURI.equal('mailto:user@example.org?body=Hello', 'mailto:user@example.org?body=hello'),
+    false,
+    'body remains case-sensitive'
+  )
+  t.equal(
+    fastURI.equal('mailto:user@example.org?x=Hello', 'mailto:user@example.org?x=hello'),
+    false,
+    'custom header value remains case-sensitive'
+  )
+  t.end()
+})
+
+test('Mailto equality change does not affect other schemes', (t) => {
+  t.equal(fastURI.equal('http://EXAMPLE.ORG/Path', 'http://example.org/path'), true, 'HTTP behavior unchanged')
+  t.equal(fastURI.equal('https://EXAMPLE.ORG/Path', 'https://example.org/path'), true, 'HTTPS behavior unchanged')
+  t.equal(fastURI.equal('WS://EXAMPLE.ORG/Chat', 'ws://example.org/chat'), true, 'WS behavior unchanged')
+  t.equal(fastURI.equal('WSS://EXAMPLE.ORG/Chat', 'wss://example.org/chat'), true, 'WSS behavior unchanged')
+  t.equal(fastURI.equal('URN:FOO:A123', 'urn:foo:a123'), true, 'URN behavior unchanged')
   t.end()
 })
 
