@@ -692,8 +692,7 @@ if (fastURI.SCHEMES.mailto) {
 
     components = fastURI.parse('mailto:list@example.org?In-Reply-To=%3C3469A91.D10AF4C@example.com%3E')
     t.deepEqual(components.to, ['list@example.org'], 'to')
-    // spread: `headers` has a null prototype, which t.deepEqual compares strictly
-    t.deepEqual({ ...components.headers }, { 'In-Reply-To': '<3469A91.D10AF4C@example.com>' }, 'headers')
+    t.deepEqual(components.headers, { 'In-Reply-To': '<3469A91.D10AF4C@example.com>' }, 'headers')
 
     components = fastURI.parse('mailto:majordomo@example.com?body=subscribe%20bamboo-l')
     t.deepEqual(components.to, ['majordomo@example.com'], 'to')
@@ -702,7 +701,7 @@ if (fastURI.SCHEMES.mailto) {
     components = fastURI.parse('mailto:joe@example.com?cc=bob@example.com&body=hello')
     t.deepEqual(components.to, ['joe@example.com'], 'to')
     t.equal(components.body, 'hello', 'body')
-    t.deepEqual({ ...components.headers }, { cc: 'bob@example.com' }, 'headers')
+    t.deepEqual(components.headers, { cc: 'bob@example.com' }, 'headers')
 
     components = fastURI.parse('mailto:joe@example.com?cc=bob@example.com?body=hello')
     if (fastURI.VALIDATE_SUPPORT) t.ok(components.error, 'invalid header fields')
@@ -712,7 +711,7 @@ if (fastURI.SCHEMES.mailto) {
 
     components = fastURI.parse('mailto:unlikely%3Faddress@example.com?blat=foop')
     t.deepEqual(components.to, ['unlikely?address@example.com'], 'to unlikely?address@example.com')
-    t.deepEqual({ ...components.headers }, { blat: 'foop' }, 'headers')
+    t.deepEqual(components.headers, { blat: 'foop' }, 'headers')
 
     components = fastURI.parse('mailto:Mike%26family@example.org')
     t.deepEqual(components.to, ['Mike&family@example.org'], 'to Mike&family@example.org')
