@@ -159,7 +159,7 @@ test('Mailto serialization preserves delimiters, escapes, and input state', (t) 
   const valueURI = fastURI.serialize(valueComponent)
   t.equal(valueURI, 'mailto:user@example.org?x=a%26b', 'ampersand in header value is encoded')
   // spread: `headers` has a null prototype, which t.deepEqual compares strictly
-  t.deepEqual(fastURI.parse(valueURI).headers, { x: 'a&b' }, 'header value round-trips')
+  t.deepEqual({ ...fastURI.parse(valueURI).headers }, { x: 'a&b' }, 'header value round-trips')
 
   const nameComponent = {
     scheme: 'mailto',
@@ -168,7 +168,7 @@ test('Mailto serialization preserves delimiters, escapes, and input state', (t) 
   }
   const nameURI = fastURI.serialize(nameComponent)
   t.equal(nameURI, 'mailto:user@example.org?x%26y=z', 'ampersand in header name is encoded')
-  t.deepEqual(fastURI.parse(nameURI).headers, { 'x&y': 'z' }, 'header name round-trips')
+  t.deepEqual({ ...fastURI.parse(nameURI).headers }, { 'x&y': 'z' }, 'header name round-trips')
 
   t.equal(
     fastURI.serialize({ scheme: 'mailto', to: ['user@example.org'], subject: 'a%2fb' }),
