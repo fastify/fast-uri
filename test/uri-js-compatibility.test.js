@@ -13,9 +13,6 @@ test('uri-js compatibility Parse', (t) => {
     if (value === '//10.10.000.10') {
       return t.skip('Skipping //10.10.000.10 as it is not a valid URI per URI spec: https://datatracker.ietf.org/doc/html/rfc5954#section-4.1')
     }
-    if (value.slice(0, 6) === 'mailto') {
-      return t.skip('Skipping mailto schema test as it is not supported by fastifyURI')
-    }
     t.same(JSON.parse(JSON.stringify(fastURI.parse(value))), expected, 'Compatibility parse: ' + value)
   })
   t.end()

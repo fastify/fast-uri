@@ -116,5 +116,27 @@
       "path": "with:colon"
     },
     "scheme:with:colon"
+  ],
+  [
+    {
+      "scheme": "mailto",
+      "to": [
+        "chris@example.com"
+      ]
+    },
+    "mailto:chris@example.com"
+  ],
+  [
+    {
+      "scheme": "mailto",
+      "to": [
+        "joe@example.com"
+      ],
+      "headers": {
+        "cc": "bob@example.com"
+      },
+      "body": "hello"
+    },
+    "mailto:joe@example.com?cc=bob@example.com&body=hello"
   ]
 ]

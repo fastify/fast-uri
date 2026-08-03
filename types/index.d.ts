@@ -16,6 +16,10 @@ declare namespace fastUri {
     secure?: boolean;
     uuid?: string;
     error?: string;
+    to?: string[];
+    subject?: string;
+    body?: string;
+    headers?: { [hfname: string]: string };
   }
   export interface Options {
     scheme?: string;

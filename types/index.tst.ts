@@ -13,3 +13,19 @@ const parsed2 = uri.parse('foo', {
 })
 
 expect(parsed2).type.toBe<URIComponent>()
+
+const mailtoComponent: URIComponent = {
+  scheme: 'mailto',
+  to: ['user@example.org'],
+  subject: 'Hello',
+  body: 'Message',
+  headers: { cc: 'other@example.org' }
+}
+
+expect(uri.serialize(mailtoComponent, { unicodeSupport: true })).type.toBe<string>()
+
+const parsedMailto = uri.parse('mailto:user@example.org')
+expect(parsedMailto.to).type.toBe<string[] | undefined>()
+expect(parsedMailto.subject).type.toBe<string | undefined>()
+expect(parsedMailto.body).type.toBe<string | undefined>()
+expect(parsedMailto.headers).type.toBe<{ [hfname: string]: string } | undefined>()
