@@ -11,9 +11,14 @@ official Fastify project package. It supplements the Fastify project's
 [WHATWG URL Standard](https://url.spec.whatwg.org/).
 
 Differences between `fast-uri` and WHATWG URL implementations are expected.
-Reports based on comparing or mixing parsers that follow these different
+Reports based solely on comparing or mixing parsers that follow these different
 standards are out of scope. Applications must use the same parsing and
 normalization rules for both security decisions and subsequent URI use.
+
+Reports are assessed based on reproducibility, documented supported usage, and
+concrete security impact—not merely on whether they mention WHATWG URL
+behavior. Reports demonstrating a parsing or normalization flaw in a supported
+scheme remain eligible for evaluation.
 
 ## Threat model
 
