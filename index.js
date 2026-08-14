@@ -119,36 +119,10 @@ function resolveComponent (base, relative, options, skipNormalization) {
  * @returns {boolean}
  */
 function equal (uriA, uriB, options) {
-  const schemeA = getEffectiveScheme(uriA, options)
-  const schemeB = getEffectiveScheme(uriB, options)
   const normalizedA = normalizeComparableURI(uriA, options)
   const normalizedB = normalizeComparableURI(uriB, options)
 
-  if (schemeA === 'mailto' || schemeB === 'mailto') {
-    return schemeA === schemeB && normalizedA !== undefined && normalizedA === normalizedB
-  }
-
-  return normalizedA !== undefined && normalizedB !== undefined && normalizedA.toLowerCase() === normalizedB.toLowerCase()
-}
-
-const SCHEME_PREFIX = /^([^#/:?]+):/u
-
-/**
- * @param {import ('./types/index').URIComponent|string} uri
- * @param {import('./types/index').Options} [options]
- * @returns {string|undefined}
- */
-function getEffectiveScheme (uri, options) {
-  if (options && options.scheme) {
-    return String(options.scheme).toLowerCase()
-  }
-  if (typeof uri === 'object' && uri.scheme) {
-    return String(uri.scheme).toLowerCase()
-  }
-  if (typeof uri === 'string') {
-    const match = uri.match(SCHEME_PREFIX)
-    return match ? match[1].toLowerCase() : undefined
-  }
+  return normalizedA !== undefined && normalizedB !== undefined && normalizedA === normalizedB
 }
 
 /**
@@ -521,14 +495,13 @@ function normalizeStringWithStatus (uri, opts) {
  * @returns {string|undefined}
  */
 function normalizeComparableURI (uri, opts) {
-  if (typeof uri === 'string') {
-    const { normalized, malformedAuthorityOrPort, malformedPercentEncoding } = normalizeStringWithStatus(uri, opts)
-    return malformedAuthorityOrPort || malformedPercentEncoding ? undefined : normalized
+  if (typeof uri !== 'string' && typeof uri !== 'object') {
+    return undefined
   }
 
-  if (typeof uri === 'object') {
-    return serialize(uri, opts)
-  }
+  const value = typeof uri === 'string' ? uri : serialize(uri, opts)
+  const { normalized, malformedAuthorityOrPort, malformedPercentEncoding } = normalizeStringWithStatus(value, opts)
+  return malformedAuthorityOrPort || malformedPercentEncoding ? undefined : normalized
 }
 
 const fastUri = {
