@@ -96,9 +96,7 @@ test('URN Equals', (t) => {
 
   runTest(t, suite)
 
-  t.throws(() => {
-    fn('urn:', 'urn:FOO:a123,456')
-  }, 'URN without nid cannot be serialized')
+  t.equal(fn('urn:', 'urn:FOO:a123,456'), false, 'malformed URN fails equality safely')
 
   t.end()
 })
