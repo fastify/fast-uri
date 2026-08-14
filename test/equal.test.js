@@ -21,6 +21,12 @@ test('URI Equals', (t) => {
   t.end()
 })
 
+test('URI Equals rejects malformed object input even when identical', (t) => {
+  const malformed = { scheme: 'http', host: 'example.com', port: 99999, path: '/x' }
+  t.equal(fn(malformed, malformed), false)
+  t.end()
+})
+
 test('URI Equals preserves case-sensitive components', (t) => {
   const suite = [
     { pair: ['http://example.com/Admin', 'http://example.com/admin'], result: false },
