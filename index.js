@@ -29,14 +29,16 @@ function resolve (baseURI, relativeURI, options) {
   const {
     parsed: baseParsed,
     malformedAuthorityOrPort: baseMalformed,
-    malformedPercentEncoding: baseMalformedPercentEncoding
+    malformedPercentEncoding: baseMalformedPercentEncoding,
+    malformedScheme: baseMalformedScheme
   } = parseWithStatus(baseURI, schemelessOptions)
   const {
     parsed: relativeParsed,
     malformedAuthorityOrPort: relativeMalformed,
-    malformedPercentEncoding: relativeMalformedPercentEncoding
+    malformedPercentEncoding: relativeMalformedPercentEncoding,
+    malformedScheme: relativeMalformedScheme
   } = parseWithStatus(relativeURI, schemelessOptions)
-  if (baseMalformed || relativeMalformed || baseMalformedPercentEncoding || relativeMalformedPercentEncoding) {
+  if (baseMalformed || relativeMalformed || baseMalformedPercentEncoding || relativeMalformedPercentEncoding || baseMalformedScheme || relativeMalformedScheme) {
     throw new Error(baseParsed.error || relativeParsed.error || 'URI is malformed.')
   }
   const resolved = resolveComponent(baseParsed, relativeParsed, schemelessOptions, true)
@@ -131,7 +133,9 @@ function equal (uriA, uriB, options) {
   return normalizedA !== undefined && normalizedB !== undefined && normalizedA.toLowerCase() === normalizedB.toLowerCase()
 }
 
-const SCHEME_PREFIX = /^([^#/:?]+):/u
+const SCHEME = /^[A-Za-z][A-Za-z\d+.-]*$/
+const SCHEME_PREFIX = /^([A-Za-z][A-Za-z\d+.-]*):/
+const SCHEME_CANDIDATE = /^([^#/:?]*):/u
 
 /**
  * @param {import ('./types/index').URIComponent|string} uri
@@ -249,7 +253,7 @@ function serialize (cmpts, opts) {
   return uriTokens.join('')
 }
 
-const URI_PARSE = /^(?:([^#/:?]+):)?(?:\/\/((?:([^#/?@]*)@)?(\[[^#/?\]]+\]|[^#/:?]*)(?::(\d*))?))?([^#?]*)(?:\?([^#]*))?(?:#((?:.|[\n\r])*))?/u
+const URI_PARSE = /^(?:([A-Za-z][A-Za-z\d+.-]*):)?(?:\/\/((?:([^#/?@]*)@)?(\[[^#/?\]]+\]|[^#/:?]*)(?::(\d*))?))?([^#?]*)(?:\?([^#]*))?(?:#((?:.|[\n\r])*))?/u
 
 // Captures the authority component (between "//" and the next "/", "?" or "#"),
 // with or without a scheme prefix, for the literal-backslash rejection below.
@@ -321,7 +325,7 @@ function hasMalformedComponentPercentEncoding (matches) {
 /**
  * @param {string} uri
  * @param {import('./types/index').Options} [opts]
- * @returns {{ parsed: import('./types/index').URIComponent, malformedAuthorityOrPort: boolean, malformedPercentEncoding: boolean }}
+ * @returns {{ parsed: import('./types/index').URIComponent, malformedAuthorityOrPort: boolean, malformedPercentEncoding: boolean, malformedScheme: boolean }}
  */
 function parseWithStatus (uri, opts) {
   const options = Object.assign({}, opts)
@@ -338,6 +342,7 @@ function parseWithStatus (uri, opts) {
 
   let malformedAuthorityOrPort = false
   let malformedPercentEncoding = false
+  let malformedScheme = false
 
   let isIP = false
   if (options.reference === 'suffix') {
@@ -381,6 +386,12 @@ function parseWithStatus (uri, opts) {
         malformedAuthorityOrPort = true
       }
     }
+  }
+
+  const schemeCandidate = uri.match(SCHEME_CANDIDATE)
+  if (schemeCandidate !== null && !SCHEME.test(schemeCandidate[1])) {
+    parsed.error = parsed.error || 'URI scheme is malformed.'
+    malformedScheme = true
   }
 
   const matches = uri.match(URI_PARSE)
@@ -455,9 +466,6 @@ function parseWithStatus (uri, opts) {
 
     if (!schemeHandler || (schemeHandler && !schemeHandler.skipNormalize)) {
       if (uri.indexOf('%') !== -1) {
-        if (parsed.scheme !== undefined) {
-          parsed.scheme = unescape(parsed.scheme)
-        }
         if (parsed.host !== undefined) {
           parsed.host = reescapeHostDelimiters(unescape(parsed.host), isIP)
         }
@@ -480,7 +488,7 @@ function parseWithStatus (uri, opts) {
   } else {
     parsed.error = parsed.error || 'URI can not be parsed.'
   }
-  return { parsed, malformedAuthorityOrPort, malformedPercentEncoding }
+  return { parsed, malformedAuthorityOrPort, malformedPercentEncoding, malformedScheme }
 }
 
 /**
@@ -504,14 +512,15 @@ function normalizeString (uri, opts) {
 /**
  * @param {string} uri
  * @param {import('./types/index').Options} [opts]
- * @returns {{ normalized: string, malformedAuthorityOrPort: boolean, malformedPercentEncoding: boolean }}
+ * @returns {{ normalized: string, malformedAuthorityOrPort: boolean, malformedPercentEncoding: boolean, malformedScheme: boolean }}
  */
 function normalizeStringWithStatus (uri, opts) {
-  const { parsed, malformedAuthorityOrPort, malformedPercentEncoding } = parseWithStatus(uri, opts)
+  const { parsed, malformedAuthorityOrPort, malformedPercentEncoding, malformedScheme } = parseWithStatus(uri, opts)
   return {
-    normalized: malformedAuthorityOrPort || malformedPercentEncoding ? uri : serialize(parsed, opts),
+    normalized: malformedAuthorityOrPort || malformedPercentEncoding || malformedScheme ? uri : serialize(parsed, opts),
     malformedAuthorityOrPort,
-    malformedPercentEncoding
+    malformedPercentEncoding,
+    malformedScheme
   }
 }
 
@@ -522,8 +531,8 @@ function normalizeStringWithStatus (uri, opts) {
  */
 function normalizeComparableURI (uri, opts) {
   if (typeof uri === 'string') {
-    const { normalized, malformedAuthorityOrPort, malformedPercentEncoding } = normalizeStringWithStatus(uri, opts)
-    return malformedAuthorityOrPort || malformedPercentEncoding ? undefined : normalized
+    const { normalized, malformedAuthorityOrPort, malformedPercentEncoding, malformedScheme } = normalizeStringWithStatus(uri, opts)
+    return malformedAuthorityOrPort || malformedPercentEncoding || malformedScheme ? undefined : normalized
   }
 
   if (typeof uri === 'object') {
