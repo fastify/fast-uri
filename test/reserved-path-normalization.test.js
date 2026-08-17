@@ -107,3 +107,27 @@ test('equal distinguishes escaped reserved path data from literal syntax', (t) =
   )
   t.end()
 })
+
+test('normalize decodes an escaped dot that is not a dot-segment', (t) => {
+  t.equal(
+    fastURI.normalize('http://example.com/foo%2Ebar'),
+    'http://example.com/foo.bar',
+    'decodes %2E inside a longer segment, like other unreserved bytes'
+  )
+  t.equal(
+    fastURI.normalize('http://example.com/%2Ehidden'),
+    'http://example.com/.hidden',
+    'decodes a leading %2E when the segment is not "." or ".."'
+  )
+  t.equal(
+    fastURI.normalize('http://example.com/a/%2e/b'),
+    'http://example.com/a/%2E/b',
+    'keeps %2E encoded when the whole segment is a dot-segment'
+  )
+  t.equal(
+    fastURI.equal('http://example.com/foo%2Ebar', 'http://example.com/foo.bar', {}),
+    true,
+    'an escaped dot and a literal dot compare equal outside a dot-segment'
+  )
+  t.end()
+})
