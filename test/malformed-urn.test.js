@@ -40,6 +40,19 @@ test('equal returns false for malformed ordinary URNs', (t) => {
   t.end()
 })
 
+test('resolve handles malformed ordinary URNs without throwing', (t) => {
+  for (const uri of malformedURNs) {
+    t.doesNotThrow(() => fastURI.resolve('uri://base/', uri), `${uri} does not throw as a relative reference`)
+    t.doesNotThrow(() => fastURI.resolve(uri, ''), `${uri} does not throw as a base URI`)
+  }
+  // resolve preserves the malformed scheme-specific input rather than surfacing
+  // an uncaught 'URN without nid cannot be serialized' error (matches upstream uri-js)
+  t.equal(fastURI.resolve('uri://base/', 'urn:'), 'urn:', 'malformed relative URN is preserved')
+  t.equal(fastURI.resolve('URN:', ''), 'urn:', 'scheme case is normalized')
+  t.equal(fastURI.resolve('uri://base/', 'urn:%66oo:bar'), 'urn:foo:bar', 'percent-encoding is decoded')
+  t.end()
+})
+
 test('valid URNs retain their existing behavior', (t) => {
   t.equal(fastURI.normalize('URN:FOO:a123,456'), 'urn:foo:a123,456')
   t.equal(fastURI.equal('urn:foo:a123,456', 'URN:FOO:a123,456', {}), true)
