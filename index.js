@@ -366,6 +366,7 @@ function parseWithStatus (uri, opts) {
   let malformedPercentEncoding = false
   let malformedSchemeSpecific = false
   let malformedHost = false
+  let malformedIPLiteral = false
 
   let isIP = false
   if (options.reference === 'suffix') {
@@ -442,9 +443,16 @@ function parseWithStatus (uri, opts) {
     if (parsed.host) {
       const ipv4result = isIPv4(parsed.host)
       if (ipv4result === false) {
+        const bracketedIPLiteral = parsed.host[0] === '[' && parsed.host[parsed.host.length - 1] === ']'
         const ipv6result = normalizeIPv6(parsed.host)
-        parsed.host = ipv6result.host.toLowerCase()
-        isIP = ipv6result.isIPV6
+        isIP = ipv6result.isIPV6 || ipv6result.isIPVFuture === true
+        malformedIPLiteral = bracketedIPLiteral && ipv6result.error === true
+        parsed.host = isIP ? ipv6result.host : ipv6result.host.toLowerCase()
+
+        if (malformedIPLiteral) {
+          parsed.error = parsed.error || 'URI host is malformed.'
+          malformedAuthorityOrPort = true
+        }
       } else {
         isIP = true
       }
@@ -475,8 +483,9 @@ function parseWithStatus (uri, opts) {
         if (parsed.scheme !== undefined) {
           parsed.scheme = unescape(parsed.scheme)
         }
-        if (parsed.host !== undefined) {
-          parsed.host = reescapeHostDelimiters(normalizePercentEncoding(parsed.host, true), isIP)
+        if (parsed.host !== undefined && !malformedIPLiteral) {
+          const host = isIP ? parsed.host : normalizePercentEncoding(parsed.host, true)
+          parsed.host = reescapeHostDelimiters(host, isIP)
         }
       }
       if (parsed.path) {

@@ -214,6 +214,7 @@ test('URI parse', (t) => {
   // invalid IPv6
   components = fastURI.parse('//[2001:dbZ::7]')
   t.equal(components.host, '[2001:dbz::7]')
+  t.equal(components.error, 'URI host is malformed.')
 
   // mixed IPv4address & IPv6address
   components = fastURI.parse('//[::ffff:129.144.52.38]')
@@ -318,6 +319,7 @@ test('URI parse', (t) => {
 
   components = fastURI.parse('//[2606:2800:220:1:248:1893:25c8:1946:43209]')
   t.equal(components.host, '[2606:2800:220:1:248:1893:25c8:1946:43209]')
+  t.equal(components.error, 'URI host is malformed.')
 
   components = fastURI.parse('urn:foo:|\\24fpl')
   t.equal(components.error, 'URN can not be parsed.')
