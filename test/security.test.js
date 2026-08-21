@@ -125,11 +125,13 @@ test('serialize escapes authority delimiters in host field', (t) => {
 })
 
 test('normalize does not double-decode %2540 into a live @', (t) => {
-  const result = fastURI.normalize('http://trusted.com%2540evil.com/')
+  const input = 'http://trusted.com%2540evil.com/'
+  const result = fastURI.normalize(input)
   const parsed = fastURI.parse(result)
 
-  t.plan(1)
-  t.notEqual(parsed.host, 'trusted.com@evil.com', 'http://trusted.com%2540evil.com/')
+  t.plan(2)
+  t.equal(result, input, 'the encoded percent sign is preserved')
+  t.notEqual(parsed.host, 'trusted.com@evil.com', input)
 })
 
 test('parse canonicalises IDN / Unicode hosts to their ASCII form', (t) => {
