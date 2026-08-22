@@ -1,6 +1,6 @@
 'use strict'
 
-const { normalizeIPv6, normalizeIPv4, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, escapePreservingEscapes, reescapeHostDelimiters } = require('./lib/utils')
+const { normalizeIPv6, normalizeIPv4, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, encodeQuery, encodeFragment, escapePreservingEscapes, reescapeHostDelimiters } = require('./lib/utils')
 const SCHEMES = require('./lib/schemes')
 
 function normalize (uri, options) {
@@ -161,12 +161,12 @@ function serialize (cmpts, opts) {
 
   if (components.query !== undefined) {
     uriTokens.push('?')
-    uriTokens.push(components.query)
+    uriTokens.push(encodeQuery(components.query))
   }
 
   if (components.fragment !== undefined) {
     uriTokens.push('#')
-    uriTokens.push(components.fragment)
+    uriTokens.push(encodeFragment(components.fragment))
   }
   return uriTokens.join('')
 }
@@ -331,9 +331,6 @@ function parseWithStatus (uri, opts) {
     if (!schemeHandler || (schemeHandler && !schemeHandler.skipNormalize)) {
       if (gotEncoding && parsed.scheme !== undefined) {
         parsed.scheme = unescape(parsed.scheme)
-      }
-      if (gotEncoding && parsed.userinfo !== undefined) {
-        parsed.userinfo = unescape(parsed.userinfo)
       }
       if (gotEncoding && parsed.host !== undefined) {
         parsed.host = reescapeHostDelimiters(unescape(parsed.host), isIP)
