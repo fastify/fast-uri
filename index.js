@@ -18,13 +18,15 @@ function resolve (baseURI, relativeURI, options) {
     parsed: baseParsed,
     malformedAuthorityOrPort: baseMalformed,
     malformedPercentEncoding: baseMalformedPercentEncoding,
-    malformedSchemeSpecific: baseMalformedSchemeSpecific
+    malformedSchemeSpecific: baseMalformedSchemeSpecific,
+    malformedHost: baseMalformedHost
   } = parseWithStatus(baseURI, schemelessOptions)
   const {
     parsed: relativeParsed,
     malformedAuthorityOrPort: relativeMalformed,
     malformedPercentEncoding: relativeMalformedPercentEncoding,
-    malformedSchemeSpecific: relativeMalformedSchemeSpecific
+    malformedSchemeSpecific: relativeMalformedSchemeSpecific,
+    malformedHost: relativeMalformedHost
   } = parseWithStatus(relativeURI, schemelessOptions)
   if (
     baseMalformed ||
@@ -32,11 +34,26 @@ function resolve (baseURI, relativeURI, options) {
     baseMalformedPercentEncoding ||
     relativeMalformedPercentEncoding ||
     baseMalformedSchemeSpecific ||
-    relativeMalformedSchemeSpecific
+    relativeMalformedSchemeSpecific ||
+    baseMalformedHost ||
+    relativeMalformedHost
   ) {
     throw new Error(baseParsed.error || relativeParsed.error || 'URI is malformed.')
   }
   const resolved = resolveComponents(baseParsed, relativeParsed, schemelessOptions, true)
+  const resolvedSchemeHandler = SCHEMES[((options && options.scheme) || resolved.scheme || '').toLowerCase()]
+  const resolvedHost = resolved.host
+  const resolvedHostIsIP = resolvedHost !== undefined && resolvedHost !== '' &&
+    (normalizeIPv4(resolvedHost).isIPV4 || normalizeIPv6(resolvedHost).isIPV6)
+  canonicalizeHost(resolved, options || {}, resolvedSchemeHandler, resolvedHostIsIP)
+  // Percent escapes in an ASCII reg-name are encoded data. The WHATWG hostname
+  // parser can reject them even though fast-uri preserves them safely as RFC
+  // 3986 data. A raw non-ASCII host must still fail closed if conversion fails.
+  const encodedASCIIHost = resolvedHost && resolvedHost.indexOf('%') !== -1 &&
+    !/\P{ASCII}/u.test(resolvedHost)
+  if (resolved.error && !encodedASCIIHost) {
+    throw new Error(resolved.error)
+  }
   return serialize(resolved, { ...schemelessOptions, skipEscape: true })
 }
 
@@ -242,6 +259,32 @@ function getParseError (parsed, matches) {
  * @param {string|undefined} component
  * @returns {boolean}
  */
+/**
+ * @param {import('./types/index').URIComponent} parsed
+ * @param {import('./types/index').Options} options
+ * @param {{ domainHost?: boolean, unicodeSupport?: boolean }|undefined} schemeHandler
+ * @param {boolean} isIP
+ * @returns {boolean} whether host conversion failed
+ */
+function canonicalizeHost (parsed, options, schemeHandler, isIP) {
+  if (
+    !options.unicodeSupport &&
+    (!schemeHandler || !schemeHandler.unicodeSupport) &&
+    parsed.host &&
+    (options.domainHost || (schemeHandler && schemeHandler.domainHost)) &&
+    isIP === false &&
+    nonSimpleDomain(parsed.host)
+  ) {
+    try {
+      parsed.host = new URL('http://' + parsed.host).hostname
+    } catch (e) {
+      parsed.error = parsed.error || "Host's domain name can not be converted to ASCII: " + e
+      return true
+    }
+  }
+  return false
+}
+
 function hasMalformedPercentEncoding (component) {
   if (component === undefined) return false
 
@@ -286,6 +329,7 @@ function parseWithStatus (uri, opts) {
   let malformedAuthorityOrPort = false
   let malformedPercentEncoding = false
   let malformedSchemeSpecific = false
+  let malformedHost = false
   let isIP = false
   if (options.reference === 'suffix') uri = (options.scheme ? options.scheme + ':' : '') + '//' + uri
 
@@ -381,19 +425,8 @@ function parseWithStatus (uri, opts) {
     // find scheme handler
     const schemeHandler = SCHEMES[(options.scheme || parsed.scheme || '').toLowerCase()]
 
-    // check if scheme can't handle IRIs
-    if (!options.unicodeSupport && (!schemeHandler || !schemeHandler.unicodeSupport)) {
-      // if host component is a domain name
-      if (parsed.host && (options.domainHost || (schemeHandler && schemeHandler.domainHost)) && isIP === false && nonSimpleDomain(parsed.host)) {
-        // convert Unicode IDN -> ASCII IDN
-        try {
-          parsed.host = new URL('http://' + parsed.host).hostname
-        } catch (e) {
-          parsed.error = parsed.error || "Host's domain name can not be converted to ASCII: " + e
-        }
-      }
-      // convert IRI -> URI
-    }
+    // convert Unicode IDN -> ASCII IDN when the effective scheme uses domain hosts
+    malformedHost = canonicalizeHost(parsed, options, schemeHandler, isIP)
 
     if (!schemeHandler || (schemeHandler && !schemeHandler.skipNormalize)) {
       if (gotEncoding && parsed.scheme !== undefined) {
@@ -423,7 +456,7 @@ function parseWithStatus (uri, opts) {
   } else {
     parsed.error = parsed.error || 'URI can not be parsed.'
   }
-  return { parsed, malformedAuthorityOrPort, malformedPercentEncoding, malformedSchemeSpecific }
+  return { parsed, malformedAuthorityOrPort, malformedPercentEncoding, malformedSchemeSpecific, malformedHost }
 }
 
 function parse (uri, opts) {
@@ -435,12 +468,13 @@ function normalizeString (uri, opts) {
 }
 
 function normalizeStringWithStatus (uri, opts) {
-  const { parsed, malformedAuthorityOrPort, malformedPercentEncoding, malformedSchemeSpecific } = parseWithStatus(uri, opts)
+  const { parsed, malformedAuthorityOrPort, malformedPercentEncoding, malformedSchemeSpecific, malformedHost } = parseWithStatus(uri, opts)
   return {
-    normalized: malformedAuthorityOrPort || malformedPercentEncoding || malformedSchemeSpecific ? uri : serialize(parsed, opts),
+    normalized: malformedAuthorityOrPort || malformedPercentEncoding || malformedSchemeSpecific || malformedHost ? uri : serialize(parsed, opts),
     malformedAuthorityOrPort,
     malformedPercentEncoding,
-    malformedSchemeSpecific
+    malformedSchemeSpecific,
+    malformedHost
   }
 }
 
@@ -455,8 +489,8 @@ function normalizeComparableURI (uri, opts) {
   } catch {
     return undefined
   }
-  const { normalized, malformedAuthorityOrPort, malformedPercentEncoding, malformedSchemeSpecific } = normalizeStringWithStatus(value, opts)
-  return malformedAuthorityOrPort || malformedPercentEncoding || malformedSchemeSpecific ? undefined : normalized
+  const { normalized, malformedAuthorityOrPort, malformedPercentEncoding, malformedSchemeSpecific, malformedHost } = normalizeStringWithStatus(value, opts)
+  return malformedAuthorityOrPort || malformedPercentEncoding || malformedSchemeSpecific || malformedHost ? undefined : normalized
 }
 
 const fastUri = {
