@@ -1,6 +1,6 @@
 'use strict'
 
-const { normalizeIPv6, normalizeIPv4, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, encodeQuery, encodeFragment, escapePreservingEscapes, reescapeHostDelimiters } = require('./lib/utils')
+const { normalizeIPv6, normalizeIPv4, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, normalizeQueryFragmentEncoding, encodeQuery, encodeFragment, escapePreservingEscapes, reescapeHostDelimiters } = require('./lib/utils')
 const SCHEMES = require('./lib/schemes')
 
 function normalize (uri, options) {
@@ -338,8 +338,11 @@ function parseWithStatus (uri, opts) {
       if (parsed.path !== undefined && parsed.path.length) {
         parsed.path = normalizePathEncoding(parsed.path)
       }
+      if (parsed.query !== undefined && parsed.query.length) {
+        parsed.query = normalizeQueryFragmentEncoding(parsed.query)
+      }
       if (parsed.fragment !== undefined && parsed.fragment.length) {
-        parsed.fragment = encodeURI(decodeURI(parsed.fragment))
+        parsed.fragment = normalizeQueryFragmentEncoding(parsed.fragment)
       }
     }
 
