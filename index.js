@@ -433,7 +433,7 @@ function parseWithStatus (uri, opts) {
         parsed.scheme = unescape(parsed.scheme)
       }
       if (gotEncoding && parsed.host !== undefined) {
-        parsed.host = reescapeHostDelimiters(unescape(parsed.host), isIP)
+        parsed.host = reescapeHostDelimiters(normalizePercentEncoding(parsed.host, true), isIP)
       }
       if (parsed.path !== undefined && parsed.path.length) {
         parsed.path = normalizePathEncoding(parsed.path)
