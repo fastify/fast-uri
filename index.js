@@ -1,6 +1,6 @@
 'use strict'
 
-const { normalizeIPv6, normalizeIPv4, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, serializePathEncoding, normalizeQueryFragmentEncoding, encodeQuery, encodeFragment, escapePreservingEscapes, reescapeHostDelimiters } = require('./lib/utils')
+const { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, serializePathEncoding, normalizeQueryFragmentEncoding, encodeQuery, encodeFragment, escapePreservingEscapes, reescapeHostDelimiters, isIPv4, nonSimpleDomain } = require('./lib/utils')
 const SCHEMES = require('./lib/schemes')
 
 function normalize (uri, options) {
@@ -44,7 +44,7 @@ function resolve (baseURI, relativeURI, options) {
   const resolvedSchemeHandler = SCHEMES[((options && options.scheme) || resolved.scheme || '').toLowerCase()]
   const resolvedHost = resolved.host
   const resolvedHostIsIP = resolvedHost !== undefined && resolvedHost !== '' &&
-    (normalizeIPv4(resolvedHost).isIPV4 || normalizeIPv6(resolvedHost).isIPV6)
+    (isIPv4(resolvedHost) || normalizeIPv6(resolvedHost).isIPV6)
   canonicalizeHost(resolved, options || {}, resolvedSchemeHandler, resolvedHostIsIP)
   // Percent escapes in an ASCII reg-name are encoded data. The WHATWG hostname
   // parser can reject them even though fast-uri preserves them safely as RFC
@@ -211,19 +211,6 @@ function serialize (cmpts, opts) {
   return uriTokens.join('')
 }
 
-const hexLookUp = Array.from({ length: 127 }, (v, k) => /[^!"$&'()*+,\-.;=_`a-z{}~]/u.test(String.fromCharCode(k)))
-
-function nonSimpleDomain (value) {
-  let code = 0
-  for (let i = 0, len = value.length; i < len; ++i) {
-    code = value.charCodeAt(i)
-    if (code > 126 || hexLookUp[code]) {
-      return true
-    }
-  }
-  return false
-}
-
 const URI_PARSE = /^(?:([^#/:?]+):)?(?:\/\/((?:([^#/?@]*)@)?(\[[^#/?\]]+\]|[^#/:?]*)(?::(\d*))?))?([^#?]*)(?:\?([^#]*))?(?:#((?:.|[\n\r])*))?/u
 
 // Captures the authority component (between "//" and the next "/", "?" or "#"),
@@ -330,6 +317,7 @@ function parseWithStatus (uri, opts) {
   let malformedPercentEncoding = false
   let malformedSchemeSpecific = false
   let malformedHost = false
+  let malformedIPLiteral = false
   let isIP = false
   if (options.reference === 'suffix') uri = (options.scheme ? options.scheme + ':' : '') + '//' + uri
 
@@ -397,13 +385,19 @@ function parseWithStatus (uri, opts) {
     }
 
     if (parsed.host) {
-      const ipv4result = normalizeIPv4(parsed.host)
-      if (ipv4result.isIPV4 === false) {
-        const ipv6result = normalizeIPv6(ipv4result.host, { isIPV4: false })
-        parsed.host = ipv6result.host.toLowerCase()
-        isIP = ipv6result.isIPV6
+      const ipv4result = isIPv4(parsed.host)
+      if (ipv4result === false) {
+        const bracketedIPLiteral = parsed.host[0] === '[' && parsed.host[parsed.host.length - 1] === ']'
+        const ipv6result = normalizeIPv6(parsed.host)
+        isIP = ipv6result.isIPV6 || ipv6result.isIPVFuture === true
+        malformedIPLiteral = bracketedIPLiteral && ipv6result.error === true
+        parsed.host = isIP ? ipv6result.host : ipv6result.host.toLowerCase()
+
+        if (malformedIPLiteral) {
+          parsed.error = parsed.error || 'URI host is malformed.'
+          malformedAuthorityOrPort = true
+        }
       } else {
-        parsed.host = ipv4result.host
         isIP = true
       }
     }
@@ -432,8 +426,9 @@ function parseWithStatus (uri, opts) {
       if (gotEncoding && parsed.scheme !== undefined) {
         parsed.scheme = unescape(parsed.scheme)
       }
-      if (gotEncoding && parsed.host !== undefined) {
-        parsed.host = reescapeHostDelimiters(normalizePercentEncoding(parsed.host, true), isIP)
+      if (parsed.host !== undefined && !malformedIPLiteral) {
+        const host = isIP ? parsed.host : normalizePercentEncoding(parsed.host, true)
+        parsed.host = reescapeHostDelimiters(host, isIP)
       }
       if (parsed.path !== undefined && parsed.path.length) {
         parsed.path = normalizePathEncoding(parsed.path)
