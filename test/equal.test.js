@@ -95,6 +95,8 @@ test('URN Equals', (t) => {
   // t.equal(URI.equal('urn:foo:a123,456', 'urn:foo:A123,456'), false)
   // t.equal(URI.equal('urn:foo:a123%2C456', 'URN:FOO:a123%2c456'), true)
 
+  t.equal(fn('urn:', 'urn:FOO:a123,456'), false, 'malformed URN fails equality safely')
+
   runTest(t, suite)
   t.end()
 })

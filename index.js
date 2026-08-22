@@ -17,14 +17,23 @@ function resolve (baseURI, relativeURI, options) {
   const {
     parsed: baseParsed,
     malformedAuthorityOrPort: baseMalformed,
-    malformedPercentEncoding: baseMalformedPercentEncoding
+    malformedPercentEncoding: baseMalformedPercentEncoding,
+    malformedSchemeSpecific: baseMalformedSchemeSpecific
   } = parseWithStatus(baseURI, schemelessOptions)
   const {
     parsed: relativeParsed,
     malformedAuthorityOrPort: relativeMalformed,
-    malformedPercentEncoding: relativeMalformedPercentEncoding
+    malformedPercentEncoding: relativeMalformedPercentEncoding,
+    malformedSchemeSpecific: relativeMalformedSchemeSpecific
   } = parseWithStatus(relativeURI, schemelessOptions)
-  if (baseMalformed || relativeMalformed || baseMalformedPercentEncoding || relativeMalformedPercentEncoding) {
+  if (
+    baseMalformed ||
+    relativeMalformed ||
+    baseMalformedPercentEncoding ||
+    relativeMalformedPercentEncoding ||
+    baseMalformedSchemeSpecific ||
+    relativeMalformedSchemeSpecific
+  ) {
     throw new Error(baseParsed.error || relativeParsed.error || 'URI is malformed.')
   }
   const resolved = resolveComponents(baseParsed, relativeParsed, schemelessOptions, true)
@@ -276,6 +285,7 @@ function parseWithStatus (uri, opts) {
   const gotEncoding = uri.indexOf('%') !== -1
   let malformedAuthorityOrPort = false
   let malformedPercentEncoding = false
+  let malformedSchemeSpecific = false
   let isIP = false
   if (options.reference === 'suffix') uri = (options.scheme ? options.scheme + ':' : '') + '//' + uri
 
@@ -406,11 +416,14 @@ function parseWithStatus (uri, opts) {
     // perform scheme specific parsing
     if (schemeHandler && schemeHandler.parse) {
       schemeHandler.parse(parsed, options)
+      if (schemeHandler === SCHEMES.urn && parsed.nid === undefined) {
+        malformedSchemeSpecific = true
+      }
     }
   } else {
     parsed.error = parsed.error || 'URI can not be parsed.'
   }
-  return { parsed, malformedAuthorityOrPort, malformedPercentEncoding }
+  return { parsed, malformedAuthorityOrPort, malformedPercentEncoding, malformedSchemeSpecific }
 }
 
 function parse (uri, opts) {
@@ -422,11 +435,12 @@ function normalizeString (uri, opts) {
 }
 
 function normalizeStringWithStatus (uri, opts) {
-  const { parsed, malformedAuthorityOrPort, malformedPercentEncoding } = parseWithStatus(uri, opts)
+  const { parsed, malformedAuthorityOrPort, malformedPercentEncoding, malformedSchemeSpecific } = parseWithStatus(uri, opts)
   return {
-    normalized: malformedAuthorityOrPort || malformedPercentEncoding ? uri : serialize(parsed, opts),
+    normalized: malformedAuthorityOrPort || malformedPercentEncoding || malformedSchemeSpecific ? uri : serialize(parsed, opts),
     malformedAuthorityOrPort,
-    malformedPercentEncoding
+    malformedPercentEncoding,
+    malformedSchemeSpecific
   }
 }
 
@@ -441,8 +455,8 @@ function normalizeComparableURI (uri, opts) {
   } catch {
     return undefined
   }
-  const { normalized, malformedAuthorityOrPort, malformedPercentEncoding } = normalizeStringWithStatus(value, opts)
-  return malformedAuthorityOrPort || malformedPercentEncoding ? undefined : normalized
+  const { normalized, malformedAuthorityOrPort, malformedPercentEncoding, malformedSchemeSpecific } = normalizeStringWithStatus(value, opts)
+  return malformedAuthorityOrPort || malformedPercentEncoding || malformedSchemeSpecific ? undefined : normalized
 }
 
 const fastUri = {
