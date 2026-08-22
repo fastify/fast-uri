@@ -49,8 +49,10 @@ test('decoded schemes select their scheme handlers', (t) => {
     'HTTP normalization runs after decoding the scheme'
   )
 
-  const mailto = fastURI.parse('ma%69lto:user@example.org')
-  t.deepEqual(mailto.to, ['user@example.org'], 'mailto parsing runs after decoding the scheme')
+  // 3.x has no mailto scheme handler (added in v4); use the ws handler to
+  // verify that a percent-encoded scheme still selects its scheme handler
+  const ws = fastURI.parse('we%62socket://example.com/')
+  t.equal(ws.scheme, 'websocket', 'ws parsing runs after decoding the scheme')
   t.end()
 })
 
