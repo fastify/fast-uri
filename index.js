@@ -1,6 +1,6 @@
 'use strict'
 
-const { normalizeIPv6, normalizeIPv4, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, normalizeQueryFragmentEncoding, encodeQuery, encodeFragment, escapePreservingEscapes, reescapeHostDelimiters } = require('./lib/utils')
+const { normalizeIPv6, normalizeIPv4, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, serializePathEncoding, normalizeQueryFragmentEncoding, encodeQuery, encodeFragment, escapePreservingEscapes, reescapeHostDelimiters } = require('./lib/utils')
 const SCHEMES = require('./lib/schemes')
 
 function normalize (uri, options) {
@@ -124,13 +124,12 @@ function serialize (cmpts, opts) {
   // perform scheme specific serialization
   if (schemeHandler && schemeHandler.serialize) schemeHandler.serialize(components, options)
 
+  const hasAuthority = components.userinfo !== undefined || components.host !== undefined || components.port !== undefined
+  const pathNoScheme = !options.skipEscape && components.scheme === undefined && !hasAuthority
+
   if (components.path !== undefined) {
     if (!options.skipEscape) {
-      components.path = escapePreservingEscapes(components.path)
-
-      if (components.scheme !== undefined) {
-        components.path = components.path.split('%3A').join(':')
-      }
+      components.path = serializePathEncoding(components.path, pathNoScheme)
     } else {
       components.path = normalizePercentEncoding(components.path)
     }
@@ -158,6 +157,13 @@ function serialize (cmpts, opts) {
 
     if (!options.absolutePath && (!schemeHandler || !schemeHandler.absolutePath)) {
       s = removeDotSegments(s)
+    }
+
+    // Dot-segment removal can expose a colon that was not originally in the
+    // first segment (for example, "./a:b"). Reapply path-noscheme encoding so
+    // the serialized relative reference cannot be reparsed as a URI scheme.
+    if (pathNoScheme) {
+      s = serializePathEncoding(s, true)
     }
 
     if (authority === undefined) {
