@@ -351,12 +351,18 @@ function hasMalformedComponentPercentEncoding (matches) {
  * @returns {boolean} whether host conversion failed
  */
 function canonicalizeHost (parsed, options, schemeHandler, isIP) {
+  const bracketedIPLiteral =
+    parsed.host &&
+    parsed.host[0] === '[' &&
+    parsed.host[parsed.host.length - 1] === ']'
+
   if (
     !options.unicodeSupport &&
     (!schemeHandler || !schemeHandler.unicodeSupport) &&
     parsed.host &&
     (options.domainHost || (schemeHandler && schemeHandler.domainHost)) &&
     isIP === false &&
+    !bracketedIPLiteral &&
     nonSimpleDomain(parsed.host)
   ) {
     try {
@@ -366,6 +372,7 @@ function canonicalizeHost (parsed, options, schemeHandler, isIP) {
       return true
     }
   }
+
   return false
 }
 
