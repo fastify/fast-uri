@@ -14,9 +14,17 @@ function normalize (uri, options) {
 
 function resolve (baseURI, relativeURI, options) {
   const schemelessOptions = Object.assign({ scheme: 'null' }, options)
-  const { parsed: baseParsed, malformedAuthorityOrPort: baseMalformed } = parseWithStatus(baseURI, schemelessOptions)
-  const { parsed: relativeParsed, malformedAuthorityOrPort: relativeMalformed } = parseWithStatus(relativeURI, schemelessOptions)
-  if (baseMalformed || relativeMalformed) {
+  const {
+    parsed: baseParsed,
+    malformedAuthorityOrPort: baseMalformed,
+    malformedPercentEncoding: baseMalformedPercentEncoding
+  } = parseWithStatus(baseURI, schemelessOptions)
+  const {
+    parsed: relativeParsed,
+    malformedAuthorityOrPort: relativeMalformed,
+    malformedPercentEncoding: relativeMalformedPercentEncoding
+  } = parseWithStatus(relativeURI, schemelessOptions)
+  if (baseMalformed || relativeMalformed || baseMalformedPercentEncoding || relativeMalformedPercentEncoding) {
     throw new Error(baseParsed.error || relativeParsed.error || 'URI is malformed.')
   }
   const resolved = resolveComponents(baseParsed, relativeParsed, schemelessOptions, true)
@@ -211,6 +219,43 @@ function getParseError (parsed, matches) {
   return undefined
 }
 
+/**
+ * Checks percent syntax without decoding the represented octets. RFC 3986
+ * percent-encoding is byte-oriented, so sequences such as `%FF` are valid even
+ * though they are not independently valid UTF-8.
+ *
+ * @param {string|undefined} component
+ * @returns {boolean}
+ */
+function hasMalformedPercentEncoding (component) {
+  if (component === undefined) return false
+
+  let percent = component.indexOf('%')
+  while (percent !== -1) {
+    if (percent + 2 >= component.length || !/^[\da-f]{2}$/iu.test(component.slice(percent + 1, percent + 3))) {
+      return true
+    }
+    percent = component.indexOf('%', percent + 3)
+  }
+
+  return false
+}
+
+/**
+ * @param {RegExpMatchArray} matches
+ * @returns {boolean}
+ */
+function hasMalformedComponentPercentEncoding (matches) {
+  // Bracketed IP literals use a raw "%" as the zone separator for historical
+  // compatibility. Their parsing is intentionally left to normalizeIPv6.
+  const host = matches[4]
+  return hasMalformedPercentEncoding(matches[3]) ||
+    (host !== undefined && !(host[0] === '[' && host[host.length - 1] === ']') && hasMalformedPercentEncoding(host)) ||
+    hasMalformedPercentEncoding(matches[6]) ||
+    hasMalformedPercentEncoding(matches[7]) ||
+    hasMalformedPercentEncoding(matches[8])
+}
+
 function parseWithStatus (uri, opts) {
   const options = Object.assign({}, opts)
   const parsed = {
@@ -224,6 +269,7 @@ function parseWithStatus (uri, opts) {
   }
   const gotEncoding = uri.indexOf('%') !== -1
   let malformedAuthorityOrPort = false
+  let malformedPercentEncoding = false
   let isIP = false
   if (options.reference === 'suffix') uri = (options.scheme ? options.scheme + ':' : '') + '//' + uri
 
@@ -273,6 +319,11 @@ function parseWithStatus (uri, opts) {
     parsed.path = matches[6] || ''
     parsed.query = matches[7]
     parsed.fragment = matches[8]
+
+    malformedPercentEncoding = hasMalformedComponentPercentEncoding(matches)
+    if (malformedPercentEncoding) {
+      parsed.error = parsed.error || 'URI contains malformed percent-encoding.'
+    }
 
     // fix port number
     if (isNaN(parsed.port)) {
@@ -353,7 +404,7 @@ function parseWithStatus (uri, opts) {
   } else {
     parsed.error = parsed.error || 'URI can not be parsed.'
   }
-  return { parsed, malformedAuthorityOrPort }
+  return { parsed, malformedAuthorityOrPort, malformedPercentEncoding }
 }
 
 function parse (uri, opts) {
@@ -365,17 +416,18 @@ function normalizeString (uri, opts) {
 }
 
 function normalizeStringWithStatus (uri, opts) {
-  const { parsed, malformedAuthorityOrPort } = parseWithStatus(uri, opts)
+  const { parsed, malformedAuthorityOrPort, malformedPercentEncoding } = parseWithStatus(uri, opts)
   return {
-    normalized: malformedAuthorityOrPort ? uri : serialize(parsed, opts),
-    malformedAuthorityOrPort
+    normalized: malformedAuthorityOrPort || malformedPercentEncoding ? uri : serialize(parsed, opts),
+    malformedAuthorityOrPort,
+    malformedPercentEncoding
   }
 }
 
 function normalizeComparableURI (uri, opts) {
   if (typeof uri === 'string') {
-    const { normalized, malformedAuthorityOrPort } = normalizeStringWithStatus(uri, opts)
-    return malformedAuthorityOrPort ? undefined : normalized
+    const { normalized, malformedAuthorityOrPort, malformedPercentEncoding } = normalizeStringWithStatus(uri, opts)
+    return malformedAuthorityOrPort || malformedPercentEncoding ? undefined : normalized
   }
 
   if (typeof uri === 'object') {
