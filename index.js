@@ -283,7 +283,7 @@ function canonicalizeHost (parsed, options, schemeHandler, isIP) {
     !options.unicodeSupport &&
     (!schemeHandler || !schemeHandler.unicodeSupport) &&
     parsed.host &&
-    parsed.host[0] !== '[' &&
+    !isIPLiteral(parsed.host) &&
     (options.domainHost || (schemeHandler && schemeHandler.domainHost)) &&
     isIP === false &&
     nonSimpleDomain(parsed.host)
@@ -313,6 +313,18 @@ function hasMalformedPercentEncoding (component) {
 }
 
 /**
+ * Whether the host is a bracketed IP literal (RFC 3986 `IP-literal`).
+ * An unterminated `[` is not a literal, so it must still be validated as a
+ * reg-name instead of being waved through as an IP.
+ *
+ * @param {string} host
+ * @returns {boolean}
+ */
+function isIPLiteral (host) {
+  return host[0] === '[' && host[host.length - 1] === ']'
+}
+
+/**
  * @param {RegExpMatchArray} matches
  * @returns {boolean}
  */
@@ -321,7 +333,7 @@ function hasMalformedComponentPercentEncoding (matches) {
   // compatibility. Their parsing is intentionally left to normalizeIPv6.
   const host = matches[4]
   return hasMalformedPercentEncoding(matches[3]) ||
-    (host !== undefined && !(host[0] === '[' && host[host.length - 1] === ']') && hasMalformedPercentEncoding(host)) ||
+    (host !== undefined && !isIPLiteral(host) && hasMalformedPercentEncoding(host)) ||
     hasMalformedPercentEncoding(matches[6]) ||
     hasMalformedPercentEncoding(matches[7]) ||
     hasMalformedPercentEncoding(matches[8])
