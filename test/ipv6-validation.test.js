@@ -119,18 +119,36 @@ test('IPv6 zone identifiers are validated correctly', (t) => {
   t.end()
 })
 
-test('unterminated bracket hosts are not treated as IP literals', (t) => {
-  const unterminated = [
+test('hosts with unbalanced or misplaced IP-literal brackets are rejected', (t) => {
+  const malformed = [
     'http://[fe80',
     'http://[',
     'http://[not-an-ip',
-    'http://[\u65e5\u672c'
+    'http://[\u65e5\u672c',
+    'http://user@[@127.0.0.1:8123/admin',
+    'http://user@]127.0.0.1:8123/admin',
+    'http://user@prefix[@127.0.0.1:8123/admin',
+    'http://user@prefix]@127.0.0.1:8123/admin'
+  ]
+  const modes = [
+    ['default', undefined],
+    ['Unicode', { unicodeSupport: true }]
   ]
 
-  for (const uri of unterminated) {
-    const parsed = fastURI.parse(uri)
-    t.ok(parsed.error, `parse rejects ${uri}`)
-    t.equal(fastURI.normalize(uri), uri, `normalize preserves ${uri}`)
+  for (const [mode, options] of modes) {
+    for (const uri of malformed) {
+      const parsed = fastURI.parse(uri, options)
+      const message = `${mode} mode rejects ${uri}`
+
+      t.equal(parsed.error, HOST_ERROR, `parse ${message}`)
+      t.equal(fastURI.normalize(uri, options), uri, `normalize preserves ${uri} in ${mode} mode`)
+      t.equal(fastURI.equal(uri, uri, options), false, `equal ${message}`)
+      t.throws(
+        () => fastURI.resolve('http://example.com/', uri, options),
+        /URI host is malformed\./,
+        `resolve ${message}`
+      )
+    }
   }
   t.end()
 })
