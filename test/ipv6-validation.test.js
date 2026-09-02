@@ -89,6 +89,36 @@ test('valid IPv6, IPvFuture, embedded IPv4, and zone forms normalize safely', (t
   t.end()
 })
 
+test('IPv6 zone identifiers are validated correctly', (t) => {
+  const valid = [
+    'http://[fe80::1%25eth0]/',
+    'http://[fe80::a%en1]/',
+    'http://[fe80::a%25eth%2D0]/'
+  ]
+
+  for (const uri of valid) {
+    const parsed = fastURI.parse(uri)
+
+    t.equal(parsed.error, undefined, `${uri} parses without error`)
+  }
+
+  const malformed = [
+    'http://[fe80::1%25]/',
+    'http://[fe80::1%25eth 0]/',
+    'http://[fe80::1%25eth%ZZ]/',
+    'http://[fe80::1%25K]/'
+  ]
+
+  for (const uri of malformed) {
+    const parsed = fastURI.parse(uri)
+
+    t.equal(parsed.error, HOST_ERROR, `${uri} is rejected`)
+    t.equal(fastURI.normalize(uri), uri, `${uri} is not rewritten`)
+    t.equal(fastURI.equal(uri, uri), false, `${uri} is not comparable`)
+  }
+  t.end()
+})
+
 test('hosts with unbalanced or misplaced IP-literal brackets are rejected', (t) => {
   const malformed = [
     'http://[fe80',
