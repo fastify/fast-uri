@@ -1,4 +1,4 @@
-# fast-uri
+# ast-uri
 
 [![NPM version](https://img.shields.io/npm/v/fast-uri.svg?style=flat)](https://www.npmjs.com/package/fast-uri)
 [![CI](https://github.com/fastify/fast-uri/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/fastify/fast-uri/actions/workflows/ci.yml)
