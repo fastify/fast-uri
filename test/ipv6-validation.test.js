@@ -180,25 +180,34 @@ test('zoned IPv6 hosts beginning with "25" round-trip through parse/normalize/se
   t.end()
 })
 
-test('serialize only trusts the parse-derived escaped host while the host is unchanged', (t) => {
+test('serialize only trusts the parse-derived IPv6 zone while the host is unchanged', (t) => {
   // Reassigning `host` after parse must take effect for serialize.
   const parsed = fastURI.parse('http://[::1]/admin')
   parsed.host = 'example.com'
   t.equal(
     fastURI.serialize(parsed),
     'http://example.com/admin',
-    'a host reassigned after parse wins over the stale escaped host'
+    'a host reassigned after parse wins over the stale zone'
   )
 
-  // A user-supplied (string) `escapedHost` must never be trusted.
+  // A caller-supplied `ipv6Zone` that does not match `host` must be ignored.
   const forged = fastURI.serialize({
     scheme: 'http',
-    host: 'good.example',
-    escapedHost: '::1]@evil.example/[',
+    host: 'fe80::1%25en1',
+    ipv6Zone: 'eth0',
     path: '/'
   })
-  t.equal(forged, 'http://good.example/', 'a forged escapedHost string is ignored')
-  t.equal(fastURI.parse(forged).host, 'good.example', 'forged escapedHost cannot redirect the parsed host')
+  t.equal(forged, 'http://[fe80::1%25en1]/', 'a mismatched ipv6Zone is ignored')
+  t.equal(fastURI.parse(forged).host, 'fe80::1%en1', 'mismatched ipv6Zone cannot redirect the parsed host')
+
+  // A caller-supplied `ipv6Zone` on a non-zoned host must be ignored too.
+  const noZone = fastURI.serialize({
+    scheme: 'http',
+    host: 'good.example',
+    ipv6Zone: 'eth0',
+    path: '/'
+  })
+  t.equal(noZone, 'http://good.example/', 'ipv6Zone on a non-zoned host is ignored')
 
   // Reassigning a zoned host to a different zone must recompute, not reuse.
   const zoned = fastURI.parse('http://[fe80::1%2525eth0]/')
@@ -207,6 +216,19 @@ test('serialize only trusts the parse-derived escaped host while the host is unc
     fastURI.serialize(zoned),
     'http://[fe80::1%25en1]/',
     'rewriting the zone recomposes from the new host'
+  )
+
+  // A consistent caller-supplied zone is honored (explicit disambiguation).
+  const disambiguated = fastURI.serialize({
+    scheme: 'http',
+    host: 'fe80::1%25eth0',
+    ipv6Zone: '25eth0',
+    path: '/'
+  })
+  t.equal(
+    disambiguated,
+    'http://[fe80::1%2525eth0]/',
+    'a consistent ipv6Zone disambiguates the component host'
   )
 
   // Mutating the host must not poison resolve either.

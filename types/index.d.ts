@@ -6,14 +6,13 @@ declare namespace fastUri {
     userinfo?: string;
     host?: string;
     /**
-     * Round-trippable form of a zoned IPv6 host (always `%25`-separated, e.g.
-     * `fe80::1%25eth0` for zone `eth0`, `fe80::1%2525eth0` for zone `25eth0`).
-     * Set by `parse` for a bracketed IPv6 literal so `serialize`/`normalize`
-     * can reproduce the exact zone without re-deriving it from the ambiguous
+     * Zone identifier of a zoned IPv6 host, e.g. `"eth0"` or `"25eth0"`. Set by
+     * `parse` for a bracketed IPv6 literal so `serialize`/`normalize` can
+     * reproduce the exact zone without re-deriving it from the ambiguous
      * single-`%` form. It is validated on use, so a value that does not match
      * `host` (for example after `host` is reassigned) is ignored.
      */
-    escapedHost?: string;
+    ipv6Zone?: string;
     port?: number | string;
     path?: string;
     query?: string;

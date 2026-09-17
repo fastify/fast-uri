@@ -90,18 +90,18 @@ function resolve (baseURI, relativeURI, options) {
 }
 
 /**
- * Copies a host component together with its parse-time round-trippable escaped
- * form (if any), so downstream recomposition does not re-derive an IPv6 zone
- * from the ambiguous single-"%" component form. The escaped form is validated
- * on use by `recomposeAuthority` rather than blindly trusted.
+ * Copies a host component together with its parse-time zone identifier (if
+ * any), so downstream recomposition does not re-derive an IPv6 zone from the
+ * ambiguous single-"%" component form. The zone is validated on use by
+ * `recomposeAuthority` rather than blindly trusted.
  *
  * @param {import('./types/index').URIComponent} target
  * @param {import('./types/index').URIComponent} source
  */
 function copyHost (target, source) {
   target.host = source.host
-  if (source.escapedHost !== undefined) {
-    target.escapedHost = source.escapedHost
+  if (source.ipv6Zone !== undefined) {
+    target.ipv6Zone = source.ipv6Zone
   }
 }
 
@@ -194,7 +194,7 @@ function equal (uriA, uriB, options) {
 function serialize (cmpts, opts) {
   const component = {
     host: cmpts.host,
-    escapedHost: cmpts.escapedHost,
+    ipv6Zone: cmpts.ipv6Zone,
     scheme: cmpts.scheme,
     userinfo: cmpts.userinfo,
     port: cmpts.port,
@@ -524,14 +524,13 @@ function parseWithStatus (uri, opts) {
         parsed.host = isIP ? ipv6result.host : ipv6result.host.toLowerCase()
 
         if (isIP && ipv6result.isIPV6 === true && parsed.host.indexOf('%') !== -1) {
-          // Persist the round-trippable escaped form (always %25-separated) so
-          // that recomposition never has to re-derive the zone from the
-          // ambiguous single-"%" component form, which misreads a zone that
-          // begins with "25" as a %25 separator. It is validated on use during
-          // recomposition, so a host reassigned after parse or an input value
-          // that does not describe the host is ignored. Only zoned literals
-          // are ambiguous; plain IPv6 addresses round-trip without it.
-          parsed.escapedHost = ipv6result.escapedHost
+          // Persist the zone identifier so recomposition never has to re-derive
+          // it from the ambiguous single-"%" component form, which misreads a
+          // zone that begins with "25" as a %25 separator. It is validated on
+          // use during recomposition, so a host reassigned after parse or an
+          // input zone that does not describe the host is ignored. Only zoned
+          // literals are ambiguous; plain IPv6 addresses round-trip without it.
+          parsed.ipv6Zone = parsed.host.slice(parsed.host.indexOf('%') + 1)
         }
 
         if (malformedIPLiteral) {
