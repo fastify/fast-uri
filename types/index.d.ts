@@ -5,6 +5,22 @@ declare namespace fastUri {
     scheme?: string;
     userinfo?: string;
     host?: string;
+    /**
+     * Zone identifier of a zoned IPv6 host, e.g. `"eth0"` or `"25eth0"`. Set by
+     * `parse` for a bracketed IPv6 literal so `serialize`/`normalize` can
+     * reproduce the exact zone without re-deriving it from the ambiguous
+     * single-`%` form. It is validated on use, so a value that does not match
+     * `host` (for example after `host` is reassigned) is ignored.
+     *
+     * When building a component object by hand, set `ipv6Zone` to disambiguate
+     * a single-`%` host whose zone is ambiguous (a zone beginning with `25`
+     * is re-read as a `%25` separator). Without it, `serialize` falls back to
+     * a best-effort heuristic and may reinterpret such a zone, e.g. `{ host:
+     * "fe80::1%25eth0" }` serializes to `[fe80::1%25eth0]` (zone `eth0`), while
+     * `{ host: "fe80::1%25eth0", ipv6Zone: "25eth0" }` serializes to
+     * `[fe80::1%2525eth0]` (zone `25eth0`).
+     */
+    ipv6Zone?: string;
     port?: number | string;
     path?: string;
     query?: string;

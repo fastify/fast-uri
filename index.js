@@ -90,6 +90,22 @@ function resolve (baseURI, relativeURI, options) {
 }
 
 /**
+ * Copies a host component together with its parse-time zone identifier (if
+ * any), so downstream recomposition does not re-derive an IPv6 zone from the
+ * ambiguous single-"%" component form. The zone is validated on use by
+ * `recomposeAuthority` rather than blindly trusted.
+ *
+ * @param {import('./types/index').URIComponent} target
+ * @param {import('./types/index').URIComponent} source
+ */
+function copyHost (target, source) {
+  target.host = source.host
+  if (source.ipv6Zone !== undefined) {
+    target.ipv6Zone = source.ipv6Zone
+  }
+}
+
+/**
  * @param {import ('./types/index').URIComponent} base
  * @param {import ('./types/index').URIComponent} relative
  * @param {import('./types/index').Options} [options]
@@ -109,7 +125,7 @@ function resolveComponent (base, relative, options, skipNormalization) {
     target.scheme = relative.scheme
     // target.authority = relative.authority;
     target.userinfo = relative.userinfo
-    target.host = relative.host
+    copyHost(target, relative)
     target.port = relative.port
     target.path = removeDotSegments(relative.path || '')
     target.query = relative.query
@@ -117,7 +133,7 @@ function resolveComponent (base, relative, options, skipNormalization) {
     if (relative.userinfo !== undefined || relative.host !== undefined || relative.port !== undefined) {
       // target.authority = relative.authority;
       target.userinfo = relative.userinfo
-      target.host = relative.host
+      copyHost(target, relative)
       target.port = relative.port
       target.path = removeDotSegments(relative.path || '')
       target.query = relative.query
@@ -146,7 +162,7 @@ function resolveComponent (base, relative, options, skipNormalization) {
       }
       // target.authority = base.authority;
       target.userinfo = base.userinfo
-      target.host = base.host
+      copyHost(target, base)
       target.port = base.port
     }
     target.scheme = base.scheme
@@ -178,6 +194,7 @@ function equal (uriA, uriB, options) {
 function serialize (cmpts, opts) {
   const component = {
     host: cmpts.host,
+    ipv6Zone: cmpts.ipv6Zone,
     scheme: cmpts.scheme,
     userinfo: cmpts.userinfo,
     port: cmpts.port,
@@ -505,6 +522,16 @@ function parseWithStatus (uri, opts) {
         isIP = ipv6result.isIPV6 || ipv6result.isIPVFuture === true
         malformedIPLiteral = hasIPLiteralBracket && (!bracketedIPLiteral || ipv6result.error === true)
         parsed.host = isIP ? ipv6result.host : ipv6result.host.toLowerCase()
+
+        if (isIP && ipv6result.isIPV6 === true && parsed.host.indexOf('%') !== -1) {
+          // Persist the zone identifier so recomposition never has to re-derive
+          // it from the ambiguous single-"%" component form, which misreads a
+          // zone that begins with "25" as a %25 separator. It is validated on
+          // use during recomposition, so a host reassigned after parse or an
+          // input zone that does not describe the host is ignored. Only zoned
+          // literals are ambiguous; plain IPv6 addresses round-trip without it.
+          parsed.ipv6Zone = parsed.host.slice(parsed.host.indexOf('%') + 1)
+        }
 
         if (malformedIPLiteral) {
           parsed.error = parsed.error || 'URI host is malformed.'
