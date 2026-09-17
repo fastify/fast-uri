@@ -5,6 +5,13 @@ declare namespace fastUri {
     scheme?: string;
     userinfo?: string;
     host?: string;
+    /**
+     * Internal, non-enumerable round-trippable form of a zoned IPv6 host
+     * (always `%25`-separated). Present only on the result of `parse` for a
+     * bracketed IPv6 literal so `serialize`/`normalize` can reproduce the
+     * exact zone without re-deriving it from the ambiguous single-`%` form.
+     */
+    escapedHost?: string;
     port?: number | string;
     path?: string;
     query?: string;

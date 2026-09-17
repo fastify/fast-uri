@@ -119,6 +119,67 @@ test('IPv6 zone identifiers are validated correctly', (t) => {
   t.end()
 })
 
+test('zoned IPv6 hosts beginning with "25" round-trip through parse/normalize/serialize/equal', (t) => {
+  const cases = [
+    // zones beginning with "25" (once ambiguous with a %25 separator)
+    ['http://[fe80::1%2525]/', 'fe80::1%25', 'http://[fe80::1%2525]/'],
+    ['http://[fe80::1%2525eth0]/', 'fe80::1%25eth0', 'http://[fe80::1%2525eth0]/'],
+    ['http://[fe80::1%2525en1]/', 'fe80::1%25en1', 'http://[fe80::1%2525en1]/'],
+    // zones that do not begin with "25" must stay idempotent
+    ['http://[fe80::1%25eth0]/', 'fe80::1%eth0', 'http://[fe80::1%25eth0]/'],
+    ['http://[fe80::a%en1]/', 'fe80::a%en1', 'http://[fe80::a%25en1]/'],
+    ['http://[fe80::a%25eth%2D0]/', 'fe80::a%eth%2D0', 'http://[fe80::a%25eth%2D0]/']
+  ]
+
+  for (const [input, host, normalized] of cases) {
+    const parsed = fastURI.parse(input)
+    t.equal(parsed.error, undefined, `${input} parses without error`)
+    t.equal(parsed.host, host, `${input} exposes the expected host`)
+    t.equal(fastURI.normalize(input), normalized, `${input} normalizes to the canonical form`)
+    t.equal(fastURI.serialize(parsed), normalized, `${input} serializes to the canonical form`)
+    const reparsed = fastURI.parse(normalized)
+    t.equal(reparsed.error, undefined, `${input} canonical output reparses without error`)
+    t.equal(reparsed.host, host, `${input} parse-after-normalize is stable`)
+  }
+
+  // distinct zones must not be conflated by equal
+  t.equal(
+    fastURI.equal('http://[fe80::1%2525eth0]/', 'http://[fe80::1%25eth0]/'),
+    false,
+    'equal distinguishes zones "25eth0" and "eth0"'
+  )
+  t.equal(
+    fastURI.equal('http://[fe80::1%2525]/', 'http://[fe80::1%25eth0]/'),
+    false,
+    'equal distinguishes zones "25" and "eth0"'
+  )
+  // the same zone still compares equal
+  t.equal(
+    fastURI.equal('http://[fe80::1%2525eth0]/', 'http://[fe80::1%2525eth0]/'),
+    true,
+    'an identical zoned authority is equal'
+  )
+  t.equal(
+    fastURI.equal('http://[fe80::1%2525]/', 'http://[fe80::1%2525]/'),
+    true,
+    'zone "25" equals itself'
+  )
+
+  // resolve must preserve the zone too
+  t.equal(
+    fastURI.resolve('http://example.com/', 'http://[fe80::1%2525eth0]/path'),
+    'http://[fe80::1%2525eth0]/path',
+    'resolve preserves a zone beginning with "25"'
+  )
+  t.equal(
+    fastURI.resolve('http://[fe80::1%2525eth0]/', 'child'),
+    'http://[fe80::1%2525eth0]/child',
+    'resolve preserves a zoned base'
+  )
+
+  t.end()
+})
+
 test('hosts with unbalanced or misplaced IP-literal brackets are rejected', (t) => {
   const malformed = [
     'http://[fe80',
