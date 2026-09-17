@@ -43,6 +43,7 @@
     "//[2001:db8::7%en0]",
     {
       "host": "2001:db8::7%en0",
+      "escapedHost": "2001:db8::7%25en0",
       "path": "",
       "reference": "relative"
     }
