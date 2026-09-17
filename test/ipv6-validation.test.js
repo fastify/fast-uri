@@ -180,6 +180,45 @@ test('zoned IPv6 hosts beginning with "25" round-trip through parse/normalize/se
   t.end()
 })
 
+test('serialize only trusts the parse-derived escaped host while the host is unchanged', (t) => {
+  // Reassigning `host` after parse must take effect for serialize.
+  const parsed = fastURI.parse('http://[::1]/admin')
+  parsed.host = 'example.com'
+  t.equal(
+    fastURI.serialize(parsed),
+    'http://example.com/admin',
+    'a host reassigned after parse wins over the stale escaped host'
+  )
+
+  // A user-supplied (string) `escapedHost` must never be trusted.
+  const forged = fastURI.serialize({
+    scheme: 'http',
+    host: 'good.example',
+    escapedHost: '::1]@evil.example/[',
+    path: '/'
+  })
+  t.equal(forged, 'http://good.example/', 'a forged escapedHost string is ignored')
+  t.equal(fastURI.parse(forged).host, 'good.example', 'forged escapedHost cannot redirect the parsed host')
+
+  // Reassigning a zoned host to a different zone must recompute, not reuse.
+  const zoned = fastURI.parse('http://[fe80::1%2525eth0]/')
+  zoned.host = 'fe80::1%25en1'
+  t.equal(
+    fastURI.serialize(zoned),
+    'http://[fe80::1%25en1]/',
+    'rewriting the zone recomposes from the new host'
+  )
+
+  // Mutating the host must not poison resolve either.
+  t.equal(
+    fastURI.resolve('http://example.com/', 'http://[fe80::1%2525eth0]/path'),
+    'http://[fe80::1%2525eth0]/path',
+    'resolve preserves the parse-derived zone'
+  )
+
+  t.end()
+})
+
 test('hosts with unbalanced or misplaced IP-literal brackets are rejected', (t) => {
   const malformed = [
     'http://[fe80',

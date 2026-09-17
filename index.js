@@ -1,6 +1,6 @@
 'use strict'
 
-const { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, serializePathEncoding, normalizeQueryFragmentEncoding, encodeQuery, encodeFragment, reescapeHostDelimiters, isIPv4, nonSimpleDomain } = require('./lib/utils')
+const { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, serializePathEncoding, normalizeQueryFragmentEncoding, encodeQuery, encodeFragment, reescapeHostDelimiters, isIPv4, nonSimpleDomain, setZonedIPv6Host, copyZonedIPv6Host } = require('./lib/utils')
 const { SCHEMES, getSchemeHandler } = require('./lib/schemes')
 
 const VALID_SCHEME = /^[A-Za-z][A-Za-z0-9+.-]*$/u
@@ -93,21 +93,15 @@ function resolve (baseURI, relativeURI, options) {
  * Copies a host component together with its parse-time round-trippable escaped
  * form (if any), so downstream recomposition does not re-derive an IPv6 zone
  * from the ambiguous single-"%" component form. The escaped form is kept
- * non-enumerable so it does not leak into parse/serialize output.
+ * non-enumerable and under a private Symbol, so it does not leak into
+ * parse/serialize output and cannot be forged by callers.
  *
  * @param {import('./types/index').URIComponent} target
  * @param {import('./types/index').URIComponent} source
  */
 function copyHost (target, source) {
   target.host = source.host
-  if (source.escapedHost !== undefined) {
-    Object.defineProperty(target, 'escapedHost', {
-      value: source.escapedHost,
-      enumerable: false,
-      writable: false,
-      configurable: true
-    })
-  }
+  copyZonedIPv6Host(target, source)
 }
 
 /**
@@ -199,7 +193,6 @@ function equal (uriA, uriB, options) {
 function serialize (cmpts, opts) {
   const component = {
     host: cmpts.host,
-    escapedHost: cmpts.escapedHost,
     scheme: cmpts.scheme,
     userinfo: cmpts.userinfo,
     port: cmpts.port,
@@ -218,6 +211,7 @@ function serialize (cmpts, opts) {
     headers: cmpts.headers,
     error: ''
   }
+  copyZonedIPv6Host(component, cmpts)
   const options = Object.assign({}, opts)
   const uriTokens = []
 
@@ -532,13 +526,9 @@ function parseWithStatus (uri, opts) {
           // Persist the round-trippable escaped form (always %25-separated) so
           // that recomposition never has to re-derive the zone from the
           // ambiguous single-"%" component form, which misreads a zone that
-          // begins with "25" as a %25 separator.
-          Object.defineProperty(parsed, 'escapedHost', {
-            value: ipv6result.escapedHost,
-            enumerable: false,
-            writable: false,
-            configurable: true
-          })
+          // begins with "25" as a %25 separator. Stored under a private Symbol
+          // so it can only be produced by parse.
+          setZonedIPv6Host(parsed, parsed.host, ipv6result.escapedHost)
         }
 
         if (malformedIPLiteral) {
