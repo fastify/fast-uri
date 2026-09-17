@@ -231,6 +231,14 @@ test('serialize only trusts the parse-derived IPv6 zone while the host is unchan
     'a consistent ipv6Zone disambiguates the component host'
   )
 
+  // Without ipv6Zone, an ambiguous single-"%" host falls back to the
+  // best-effort heuristic (documented behavior for hand-built components).
+  t.equal(
+    fastURI.serialize({ host: 'fe80::1%25eth0' }),
+    '//[fe80::1%25eth0]',
+    'an ambiguous host without ipv6Zone uses the best-effort heuristic'
+  )
+
   // Mutating the host must not poison resolve either.
   t.equal(
     fastURI.resolve('http://example.com/', 'http://[fe80::1%2525eth0]/path'),
