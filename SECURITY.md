@@ -15,38 +15,87 @@ Reports based solely on comparing or mixing parsers that follow these different
 standards are out of scope. Applications must use the same parsing and
 normalization rules for both security decisions and subsequent URI use.
 
+A WHATWG comparison may be useful supporting evidence, but a parser difference
+is not by itself a vulnerability. A report remains in scope when it independently
+demonstrates a defect in `fast-uri`'s RFC or documented behavior for a supported
+scheme and a concrete security impact when the application uses `fast-uri`
+consistently. An exploit that requires validating with `fast-uri` and then
+passing the original, unmodified input to a parser with different rules is an
+application parser-confusion issue.
+
 Reports are assessed based on reproducibility, documented supported usage, and
 concrete security impact—not merely on whether they mention WHATWG URL
-behavior. Reports demonstrating a parsing or normalization flaw in a supported
-scheme remain eligible for evaluation.
+behavior.
 
 ## Threat model
 
 `fast-uri`'s threat model extends the
 [Node.js threat model](https://github.com/nodejs/node/blob/main/SECURITY.md#the-nodejs-threat-model).
 
-**Trusted:** Application code, parser options, configuration, and the runtime
-environment.
+**Trusted:** Application code, structured component objects constructed or
+modified by application code and passed directly to `serialize()`, parser
+options, configuration, and the runtime environment.
 
 **Untrusted:** URI and IRI strings passed to the package's public APIs.
 
+## Vulnerability classification
+
+A report is treated as a vulnerability when it demonstrates all of the
+following:
+
+1. Attacker-controlled input reaches a public API through documented,
+   supported usage.
+2. `fast-uri` violates an applicable RFC or its documented API contract.
+3. The defect creates a concrete confidentiality, integrity, or availability
+   impact in a realistic supported use case.
+4. The impact does not depend solely on application misuse, an unsupported
+   scheme, a different parser interpreting the original input, or another
+   package's behavior.
+
+A reproducible bug can still merit a normal issue and fix without meeting the
+security-vulnerability threshold.
+
 ### Examples of vulnerabilities
 
-- RFC 3986 parsing or normalization flaws that bypass security controls
-- Denial of service through malformed input
-- Inconsistent parsing or normalization between `fast-uri` APIs
+- `parse()`, `normalize()`, or `resolve()` changes an attacker-controlled
+  authority within `fast-uri`, and the report demonstrates a host security
+  control being bypassed using that output
+- `equal()` aliases distinct URIs under the rules of a supported scheme, and
+  the report demonstrates an authorization, signature, or cache boundary being
+  bypassed
+- One public API call on a reasonably sized malformed URI causes
+  disproportionate CPU or memory consumption, with reproducible availability
+  impact
+- Parsing or normalization turns component data into a structural delimiter
+  and the report demonstrates a security-control bypass in documented usage
+
+### Denial-of-service reports
+
+A synchronous exception, parse error, or non-idempotent result is not by itself
+a denial-of-service vulnerability. A report must demonstrate disproportionate
+resource consumption in a public API call, or loss of availability in a
+supported deployment despite normal exception handling. An application that
+terminates on an uncaught exception, or repeatedly normalizes until reaching a
+fixpoint, does not establish a package vulnerability by itself.
 
 ### Examples of non-vulnerabilities
 
 The following are **not** considered vulnerabilities in `fast-uri`:
 
-- **Different URL standards:** Differences between RFC 3986 behavior and
-  WHATWG URL behavior, including differences exposed by mixing parsers that
-  implement those standards
-- **Unsupported scheme semantics:** Scheme-specific behavior for schemes that
-  `fast-uri` does not document as supported
+- **Different URL standards:** `fast-uri` returns one host, but an application
+  passes the original input to WHATWG `URL`, `fetch`, or another parser that
+  applies different recovery, whitespace, or legacy-IP rules
+- **Unsupported scheme semantics:** Behavior specific to schemes such as
+  `ftp` or `file`, which `fast-uri` does not document as supported
+- **Correctness without security impact:** Non-idempotent normalization,
+  surprising equality, truncation, re-encoding, or malformed-input handling
+  without a demonstrated security boundary or availability impact
+- **Caller-created resource use:** An application repeatedly parses or
+  normalizes a value, or fails to catch a synchronous exception
+- **Trusted structured input:** Boundary characters supplied in a component
+  object that application code constructs and passes to `serialize()`
 - **Application code vulnerabilities:** Security flaws in code that consumes
-  `fast-uri` output
+  `fast-uri` output contrary to its documented contract
 - **Configuration mistakes:** Security issues caused by incorrect parser
   options or application configuration
 - **Missing security features:** Application-level protections that are not

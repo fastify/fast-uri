@@ -99,6 +99,7 @@ fast-uri supports inserting custom [scheme](https://en.wikipedia.org/wiki/URI_sc
 *	wss \[[RFC 6455](https://www.ietf.org/rfc/rfc6455.txt)\]
 *	urn \[[RFC 2141](https://www.ietf.org/rfc/rfc2141.txt)\]
 *	urn:uuid \[[RFC 4122](https://www.ietf.org/rfc/rfc4122.txt)\]
+*	mailto \[[RFC 6068](https://www.rfc-editor.org/rfc/rfc6068)\]
 
 
 ## Benchmarks
