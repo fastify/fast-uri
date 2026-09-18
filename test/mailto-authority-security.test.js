@@ -94,3 +94,32 @@ test('mailto authority form is reported as malformed on the parsed component', (
   t.equal(fastURI.parse('mailto:user@host.com').error, undefined, 'well-formed mailto has no error')
   t.end()
 })
+
+test('mailto serializer drops caller-supplied authority when recipients are present', (t) => {
+  t.equal(
+    fastURI.serialize({ scheme: 'mailto', host: 'h', to: ['a@b'] }),
+    'mailto:a@b',
+    'authority is dropped for direct recipients'
+  )
+  t.equal(
+    fastURI.serialize({ scheme: 'mailto', userinfo: 'u', host: 'h', port: 8080, to: ['a@b'] }),
+    'mailto:a@b',
+    'userinfo, host, and port are dropped for direct recipients'
+  )
+  t.equal(
+    fastURI.serialize({ scheme: 'mailto', host: 'h', headers: { to: 'a@b' } }),
+    'mailto:a@b',
+    'authority is dropped for recipients supplied through a to hfield'
+  )
+  t.equal(
+    fastURI.serialize({ scheme: 'mailto', host: 'h', to: ['a@b'], subject: 'hello' }),
+    'mailto:a@b?subject=hello',
+    'dropping authority preserves header fields'
+  )
+  t.equal(
+    fastURI.serialize({ scheme: 'mailto', host: 'h' }),
+    'mailto://h',
+    'bare authority without recipients remains idempotent'
+  )
+  t.end()
+})
