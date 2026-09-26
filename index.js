@@ -44,6 +44,7 @@ function resolve (baseURI, relativeURI, options) {
   const {
     parsed: baseParsed,
     malformedAuthorityOrPort: baseMalformed,
+    malformedReferenceEdge: baseMalformedReferenceEdge,
     malformedPercentEncoding: baseMalformedPercentEncoding,
     malformedSchemeSpecific: baseMalformedSchemeSpecific,
     malformedHost: baseMalformedHost,
@@ -52,6 +53,7 @@ function resolve (baseURI, relativeURI, options) {
   const {
     parsed: relativeParsed,
     malformedAuthorityOrPort: relativeMalformed,
+    malformedReferenceEdge: relativeMalformedReferenceEdge,
     malformedPercentEncoding: relativeMalformedPercentEncoding,
     malformedSchemeSpecific: relativeMalformedSchemeSpecific,
     malformedHost: relativeMalformedHost,
@@ -60,6 +62,8 @@ function resolve (baseURI, relativeURI, options) {
   if (
     baseMalformed ||
     relativeMalformed ||
+    baseMalformedReferenceEdge ||
+    relativeMalformedReferenceEdge ||
     baseMalformedPercentEncoding ||
     relativeMalformedPercentEncoding ||
     baseMalformedSchemeSpecific ||
@@ -74,6 +78,14 @@ function resolve (baseURI, relativeURI, options) {
   const resolved = resolveComponent(baseParsed, relativeParsed, schemelessOptions, true)
   const resolvedSchemeHandler = getSchemeHandler((options && options.scheme) || resolved.scheme)
   const resolvedHost = resolved.host
+  // Inputs are parsed scheme-neutrally during resolution, so enforce the final
+  // HTTP scheme's required host before serializing an invalid HTTP URI.
+  if (
+    (resolved.scheme === 'http' || resolved.scheme === 'https') &&
+    !resolvedHost
+  ) {
+    throw new Error('HTTP URIs must have a host.')
+  }
   const resolvedHostIsIP = resolvedHost !== undefined && resolvedHost !== '' &&
     (isIPv4(resolvedHost) || normalizeIPv6(resolvedHost).isIPV6)
   canonicalizeHost(resolved, options || {}, resolvedSchemeHandler, resolvedHostIsIP)
@@ -409,7 +421,7 @@ function canonicalizeHost (parsed, options, schemeHandler, isIP) {
 /**
  * @param {string} uri
  * @param {import('./types/index').Options} [opts]
- * @returns {{ parsed: import('./types/index').URIComponent, malformedAuthorityOrPort: boolean, malformedPercentEncoding: boolean, malformedSchemeSpecific: boolean, malformedHost: boolean, malformedScheme: boolean }}
+ * @returns {{ parsed: import('./types/index').URIComponent, malformedAuthorityOrPort: boolean, malformedReferenceEdge: boolean, malformedPercentEncoding: boolean, malformedSchemeSpecific: boolean, malformedHost: boolean, malformedScheme: boolean }}
  */
 function parseWithStatus (uri, opts) {
   const options = Object.assign({}, opts)
@@ -425,6 +437,12 @@ function parseWithStatus (uri, opts) {
   }
 
   let malformedAuthorityOrPort = false
+  // Check the caller's original reference before suffix mode prepends a scheme
+  // or authority marker and turns its leading edge into interior data.
+  const malformedReferenceEdge = uri.length !== 0 && (
+    uri.charCodeAt(0) <= 0x20 ||
+    uri.charCodeAt(uri.length - 1) <= 0x20
+  )
   let malformedPercentEncoding = false
   let malformedSchemeSpecific = false
   let malformedHost = false
@@ -473,6 +491,10 @@ function parseWithStatus (uri, opts) {
         malformedAuthorityOrPort = true
       }
     }
+  }
+
+  if (malformedReferenceEdge) {
+    parsed.error = parsed.error || 'URI must not contain leading or trailing C0 controls or spaces.'
   }
 
   const matches = uri.match(URI_PARSE)
@@ -596,7 +618,7 @@ function parseWithStatus (uri, opts) {
   } else {
     parsed.error = parsed.error || 'URI can not be parsed.'
   }
-  return { parsed, malformedAuthorityOrPort, malformedPercentEncoding, malformedSchemeSpecific, malformedHost, malformedScheme }
+  return { parsed, malformedAuthorityOrPort, malformedReferenceEdge, malformedPercentEncoding, malformedSchemeSpecific, malformedHost, malformedScheme }
 }
 
 /**
@@ -620,13 +642,14 @@ function normalizeString (uri, opts) {
 /**
  * @param {string} uri
  * @param {import('./types/index').Options} [opts]
- * @returns {{ normalized: string, malformedAuthorityOrPort: boolean, malformedPercentEncoding: boolean, malformedSchemeSpecific: boolean, malformedHost: boolean, malformedScheme: boolean }}
+ * @returns {{ normalized: string, malformedAuthorityOrPort: boolean, malformedReferenceEdge: boolean, malformedPercentEncoding: boolean, malformedSchemeSpecific: boolean, malformedHost: boolean, malformedScheme: boolean }}
  */
 function normalizeStringWithStatus (uri, opts) {
-  const { parsed, malformedAuthorityOrPort, malformedPercentEncoding, malformedSchemeSpecific, malformedHost, malformedScheme } = parseWithStatus(uri, opts)
+  const { parsed, malformedAuthorityOrPort, malformedReferenceEdge, malformedPercentEncoding, malformedSchemeSpecific, malformedHost, malformedScheme } = parseWithStatus(uri, opts)
   return {
-    normalized: malformedAuthorityOrPort || malformedPercentEncoding || malformedSchemeSpecific || malformedHost || malformedScheme ? uri : serialize(parsed, opts),
+    normalized: malformedAuthorityOrPort || malformedReferenceEdge || malformedPercentEncoding || malformedSchemeSpecific || malformedHost || malformedScheme ? uri : serialize(parsed, opts),
     malformedAuthorityOrPort,
+    malformedReferenceEdge,
     malformedPercentEncoding,
     malformedSchemeSpecific,
     malformedHost,
@@ -650,8 +673,8 @@ function normalizeComparableURI (uri, opts) {
   } catch {
     return undefined
   }
-  const { normalized, malformedAuthorityOrPort, malformedPercentEncoding, malformedSchemeSpecific, malformedHost, malformedScheme } = normalizeStringWithStatus(value, opts)
-  return malformedAuthorityOrPort || malformedPercentEncoding || malformedSchemeSpecific || malformedHost || malformedScheme ? undefined : normalized
+  const { normalized, malformedAuthorityOrPort, malformedReferenceEdge, malformedPercentEncoding, malformedSchemeSpecific, malformedHost, malformedScheme } = normalizeStringWithStatus(value, opts)
+  return malformedAuthorityOrPort || malformedReferenceEdge || malformedPercentEncoding || malformedSchemeSpecific || malformedHost || malformedScheme ? undefined : normalized
 }
 
 const fastUri = {
