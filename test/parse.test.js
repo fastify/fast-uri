@@ -3,6 +3,8 @@
 const test = require('tape')
 const fastURI = require('..')
 
+const EDGE_ERROR = 'URI must not contain leading or trailing C0 controls or spaces.'
+
 test('URI parse', (t) => {
   let components
 
@@ -92,7 +94,7 @@ test('URI parse', (t) => {
 
   // fragment with character tabulation
   components = fastURI.parse('#\t')
-  t.equal(components.error, undefined, 'path errors')
+  t.equal(components.error, EDGE_ERROR, 'fragment with trailing tab is malformed')
   t.equal(components.scheme, undefined, 'scheme')
   // t.equal(components.authority, undefined, "authority");
   t.equal(components.userinfo, undefined, 'userinfo')
@@ -104,7 +106,7 @@ test('URI parse', (t) => {
 
   // fragment with line feed
   components = fastURI.parse('#\n')
-  t.equal(components.error, undefined, 'path errors')
+  t.equal(components.error, EDGE_ERROR, 'fragment with trailing line feed is malformed')
   t.equal(components.scheme, undefined, 'scheme')
   // t.equal(components.authority, undefined, "authority");
   t.equal(components.userinfo, undefined, 'userinfo')
@@ -116,7 +118,7 @@ test('URI parse', (t) => {
 
   // fragment with line tabulation
   components = fastURI.parse('#\v')
-  t.equal(components.error, undefined, 'path errors')
+  t.equal(components.error, EDGE_ERROR, 'fragment with trailing vertical tab is malformed')
   t.equal(components.scheme, undefined, 'scheme')
   // t.equal(components.authority, undefined, "authority");
   t.equal(components.userinfo, undefined, 'userinfo')
@@ -128,7 +130,7 @@ test('URI parse', (t) => {
 
   // fragment with form feed
   components = fastURI.parse('#\f')
-  t.equal(components.error, undefined, 'path errors')
+  t.equal(components.error, EDGE_ERROR, 'fragment with trailing form feed is malformed')
   t.equal(components.scheme, undefined, 'scheme')
   // t.equal(components.authority, undefined, "authority");
   t.equal(components.userinfo, undefined, 'userinfo')
@@ -140,7 +142,7 @@ test('URI parse', (t) => {
 
   // fragment with carriage return
   components = fastURI.parse('#\r')
-  t.equal(components.error, undefined, 'path errors')
+  t.equal(components.error, EDGE_ERROR, 'fragment with trailing carriage return is malformed')
   t.equal(components.scheme, undefined, 'scheme')
   // t.equal(components.authority, undefined, "authority");
   t.equal(components.userinfo, undefined, 'userinfo')
