@@ -202,8 +202,8 @@ test('resolve applies domain canonicalisation only when the effective scheme opt
   t.plan(2)
   t.equal(
     fastURI.resolve('uri://trusted.example/', `//${host}/`),
-    `uri://${host}/`,
-    'an unsupported scheme preserves the host'
+    'uri://ex%C2%ADample.com/',
+    'a generic URI encodes the host without applying domain canonicalisation'
   )
   t.equal(
     fastURI.resolve('http://trusted.example/', `//${host}/`, { unicodeSupport: true }),
