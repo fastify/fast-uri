@@ -1,6 +1,6 @@
 'use strict'
 
-const { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, serializePathEncoding, normalizeQueryFragmentEncoding, encodeQuery, encodeFragment, reescapeHostDelimiters, isIPv4, nonSimpleDomain } = require('./lib/utils')
+const { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, serializePathEncoding, normalizeQueryFragmentEncoding, encodeQuery, encodeFragment, encodeHost, isIPv4, nonSimpleDomain } = require('./lib/utils')
 const { SCHEMES, getSchemeHandler } = require('./lib/schemes')
 
 const VALID_SCHEME = /^[A-Za-z][A-Za-z0-9+.-]*$/u
@@ -261,7 +261,8 @@ function serialize (cmpts, opts) {
     uriTokens.push(component.scheme, ':')
   }
 
-  const authority = recomposeAuthority(component)
+  const allowNonAsciiHost = options.unicodeSupport === true || Boolean(schemeHandler && schemeHandler.unicodeSupport)
+  const authority = recomposeAuthority(component, allowNonAsciiHost)
   if (authority !== undefined) {
     if (options.reference !== 'suffix') {
       uriTokens.push('//')
@@ -592,14 +593,24 @@ function parseWithStatus (uri, opts) {
       malformedHost = canonicalizeHost(parsed, options, schemeHandler, isIP)
     }
 
-    if (uri.indexOf('%') !== -1 && parsed.host !== undefined && !malformedIPLiteral) {
-      let host = isIP ? parsed.host : normalizePercentEncoding(parsed.host, true)
-      if (!isIP) {
+    if (parsed.host !== undefined && !malformedIPLiteral) {
+      let host = parsed.host
+      if (uri.indexOf('%') !== -1 && !isIP) {
+        host = normalizePercentEncoding(host, true)
         // Fold reg-name case after decoding unreserved octets. The second
         // pass only restores uppercase hex in escapes that remain encoded.
         host = normalizePercentEncoding(host.toLowerCase())
       }
-      parsed.host = reescapeHostDelimiters(host, isIP)
+      // Resolution parses both inputs with the internal `null` scheme before
+      // the effective scheme is known. Preserve raw host characters for that
+      // intermediate step so the final scheme can apply domain canonicalization;
+      // the resolved authority is encoded when it is serialized.
+      if (options.scheme !== 'null') {
+        const allowNonAsciiHost = options.unicodeSupport === true || Boolean(schemeHandler && schemeHandler.unicodeSupport)
+        parsed.host = encodeHost(host, isIP, allowNonAsciiHost)
+      } else {
+        parsed.host = host
+      }
     }
 
     if (!schemeHandler || (schemeHandler && !schemeHandler.skipNormalize)) {
