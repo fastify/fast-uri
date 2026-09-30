@@ -98,6 +98,9 @@ function resolve (baseURI, relativeURI, options) {
     throw new Error(resolved.error)
   }
   schemelessOptions.skipEscape = true
+  if (resolvedSchemeHandler && resolvedSchemeHandler.absolutePath) {
+    schemelessOptions.absolutePath = true
+  }
   return serialize(resolved, schemelessOptions)
 }
 
@@ -139,7 +142,10 @@ function resolveComponent (base, relative, options, skipNormalization) {
     target.userinfo = relative.userinfo
     copyHost(target, relative)
     target.port = relative.port
-    target.path = removeDotSegments(relative.path || '')
+    const relativeSchemeHandler = getSchemeHandler(relative.scheme)
+    target.path = relativeSchemeHandler && relativeSchemeHandler.absolutePath
+      ? relative.path || ''
+      : removeDotSegments(relative.path || '')
     target.query = relative.query
   } else {
     if (relative.userinfo !== undefined || relative.host !== undefined || relative.port !== undefined) {

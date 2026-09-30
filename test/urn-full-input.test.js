@@ -27,3 +27,21 @@ test('URN parsing preserves the complete RFC 2141 NSS', (t) => {
 
   t.end()
 })
+
+test('URN serialization preserves NSS dot segments', (t) => {
+  const urnWithDotSegments = 'urn:example:a/b/../c'
+  const destructiveDotSegments = 'urn:example:../../../etc/passwd'
+
+  t.equal(fastURI.serialize(fastURI.parse(urnWithDotSegments)), urnWithDotSegments, 'parsed NSS round-trips unchanged')
+  t.equal(
+    fastURI.serialize({ scheme: 'urn', nid: 'example', nss: '../../../etc/passwd' }),
+    destructiveDotSegments,
+    'structured NSS retains leading dot segments'
+  )
+  t.equal(fastURI.normalize(urnWithDotSegments), urnWithDotSegments, 'normalization retains interior dot segments')
+  t.equal(fastURI.normalize(destructiveDotSegments), destructiveDotSegments, 'normalization retains leading dot segments')
+  t.equal(fastURI.resolve('', urnWithDotSegments), urnWithDotSegments, 'resolution retains NSS dot segments')
+  t.equal(fastURI.equal(urnWithDotSegments, 'urn:example:a/c'), false, 'distinct NSS values do not compare equal')
+
+  t.end()
+})
