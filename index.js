@@ -392,6 +392,18 @@ function hasMalformedComponentPercentEncoding (matches) {
 }
 
 /**
+ * Internal option set by `equal()` so domain hosts are compared by their WHATWG
+ * ASCII form even when `unicodeSupport` is enabled.
+ */
+const COMPARE_ASCII_HOST = Symbol('fast-uri.compareAsciiHost')
+
+/**
+ * Canonicalizes the host of a domain-host scheme with the WHATWG URL host
+ * parser, independently of `unicodeSupport`, so legacy numeric IPv4 forms
+ * ("2130706433", "0x7f.1", "0177.0.0.1", "127.1") always become dotted decimal
+ * and hosts rejected by the parser always fail closed. With `unicodeSupport`
+ * a non-IPv4 host keeps its (lowercased) Unicode form for IRI output.
+ *
  * @param {import('./types/index').URIComponent} parsed
  * @param {import('./types/index').Options} options
  * @param {{ domainHost?: boolean, unicodeSupport?: boolean }|undefined} schemeHandler
@@ -405,7 +417,6 @@ function canonicalizeHost (parsed, options, schemeHandler, isIP) {
     parsed.host[parsed.host.length - 1] === ']'
 
   if (
-    !options.unicodeSupport &&
     (!schemeHandler || !schemeHandler.unicodeSupport) &&
     parsed.host &&
     !isIPLiteral(parsed.host) &&
@@ -414,11 +425,19 @@ function canonicalizeHost (parsed, options, schemeHandler, isIP) {
     !bracketedIPLiteral &&
     nonSimpleDomain(parsed.host)
   ) {
+    let hostname
     try {
-      parsed.host = new URL('http://' + parsed.host).hostname
+      hostname = new URL('http://' + parsed.host).hostname
     } catch (e) {
       parsed.error = parsed.error || "Host's domain name can not be converted to ASCII: " + e
       return true
+    }
+    if (
+      !options.unicodeSupport ||
+      /** @type {Record<symbol, unknown>} */ (options)[COMPARE_ASCII_HOST] === true ||
+      isIPv4(hostname)
+    ) {
+      parsed.host = hostname
     }
   }
 
@@ -591,6 +610,9 @@ function parseWithStatus (uri, opts) {
     // convert Unicode IDN -> ASCII IDN when the effective scheme uses domain hosts
     if (!malformedIPLiteral) {
       malformedHost = canonicalizeHost(parsed, options, schemeHandler, isIP)
+      if (!isIP && parsed.host && isIPv4(parsed.host)) {
+        isIP = true
+      }
     }
 
     if (parsed.host !== undefined && !malformedIPLiteral) {
@@ -690,7 +712,10 @@ function normalizeComparableURI (uri, opts) {
   } catch {
     return undefined
   }
-  const { normalized, malformedAuthorityOrPort, malformedReferenceEdge, malformedPercentEncoding, malformedSchemeSpecific, malformedHost, malformedScheme } = normalizeStringWithStatus(value, opts)
+  // Compare domain hosts by their ASCII form so Unicode, width-variant and
+  // punycode spellings of the same host are equal under `unicodeSupport` too.
+  const compareOptions = Object.assign({}, opts, { [COMPARE_ASCII_HOST]: true })
+  const { normalized, malformedAuthorityOrPort, malformedReferenceEdge, malformedPercentEncoding, malformedSchemeSpecific, malformedHost, malformedScheme } = normalizeStringWithStatus(value, compareOptions)
   return malformedAuthorityOrPort || malformedReferenceEdge || malformedPercentEncoding || malformedSchemeSpecific || malformedHost || malformedScheme ? undefined : normalized
 }
 
