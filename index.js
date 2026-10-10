@@ -1,6 +1,6 @@
 'use strict'
 
-const { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, serializePathEncoding, normalizeQueryFragmentEncoding, encodeQuery, encodeFragment, encodeHost, isIPv4, nonSimpleDomain } = require('./lib/utils')
+const { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, serializePathEncoding, normalizeQueryFragmentEncoding, encodeQuery, encodeFragment, encodeHost, isIPv4, nonSimpleDomain, fastLowerAsciiHost } = require('./lib/utils')
 const { SCHEMES, getSchemeHandler } = require('./lib/schemes')
 
 const VALID_SCHEME = /^[A-Za-z][A-Za-z0-9+.-]*$/u
@@ -198,6 +198,13 @@ function resolveComponent (base, relative, options, skipNormalization) {
  * @returns {boolean}
  */
 function equal (uriA, uriB, options) {
+  // Identical inputs always normalize identically: computing one side decides
+  // the result (malformed input still yields undefined, preserving the
+  // documented `equal(malformed, malformed) === false` contract).
+  if (uriA === uriB) {
+    return normalizeComparableURI(uriA, options) !== undefined
+  }
+
   const normalizedA = normalizeComparableURI(uriA, options)
   const normalizedB = normalizeComparableURI(uriB, options)
 
@@ -234,8 +241,13 @@ function serialize (cmpts, opts) {
   const options = Object.assign({}, opts)
   const uriTokens = []
 
+  // Scheme validation result to reuse below: either the scheme was already
+  // decoded, or a scheme handler replaced it and it must be decoded again.
+  let schemeDecodedFrom
+
   if (component.scheme) {
     component.scheme = decodeValidScheme(component.scheme)
+    schemeDecodedFrom = component.scheme
   }
 
   // find scheme handler
@@ -256,8 +268,11 @@ function serialize (cmpts, opts) {
   }
 
   if (options.reference !== 'suffix' && component.scheme) {
-    // Scheme handlers may replace the scheme during serialization.
-    component.scheme = decodeValidScheme(component.scheme)
+    // Scheme handlers may replace the scheme during serialization, so it must
+    // be decoded again only when it changed since the decode above.
+    if (component.scheme !== schemeDecodedFrom) {
+      component.scheme = decodeValidScheme(component.scheme)
+    }
     uriTokens.push(component.scheme, ':')
   }
 
@@ -414,6 +429,18 @@ function canonicalizeHost (parsed, options, schemeHandler, isIP) {
     !bracketedIPLiteral &&
     nonSimpleDomain(parsed.host)
   ) {
+    // `nonSimpleDomain` flags any host containing a digit or an uppercase
+    // character, but `new URL('http://' + host).hostname` is exactly the
+    // ASCII-lowercased input for most of them ("mail2.example.org",
+    // "Example.COM"). A lowercased pure-ASCII host made of identity
+    // characters whose final label is not a WHATWG IPv4 number needs no URL
+    // construction after all; everything else still falls through to WHATWG.
+    const fastHost = fastLowerAsciiHost(parsed.host)
+    if (fastHost !== undefined) {
+      parsed.host = fastHost
+      return false
+    }
+
     try {
       parsed.host = new URL('http://' + parsed.host).hostname
     } catch (e) {
