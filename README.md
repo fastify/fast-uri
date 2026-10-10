@@ -29,9 +29,18 @@ Malformed authorities, out-of-range ports, and raw leading or trailing C0 contro
 
 *	`unicodeSupport` (boolean, false)
 	If set to `true`, the parser will unescape non-ASCII characters in the parsed output as per [RFC 3987](https://www.ietf.org/rfc/rfc3987.txt).
+	For domain-host schemes, hosts are still validated and legacy numeric IPv4 forms are still canonicalized (see [Host canonicalization](#host-canonicalization)); other domain hosts keep their lowercased Unicode form. `equal()` always compares domain hosts by their ASCII form.
 
 *	`domainHost` (boolean, false)
-	If set to `true`, the library will treat the `host` component as a domain name, and convert IDNs (International Domain Names) as per [RFC 5891](https://www.ietf.org/rfc/rfc5891.txt).
+	If set to `true`, the library will treat the `host` component as a domain name, and convert IDNs (International Domain Names) as per [RFC 5891](https://www.ietf.org/rfc/rfc5891.txt). This is the default for `http`, `https`, `ws` and `wss`. See [Host canonicalization](#host-canonicalization).
+
+### Host canonicalization
+
+For domain-host schemes (`http`, `https`, `ws`, `wss`, or any scheme with `domainHost: true`), hosts are canonicalized with the runtime's WHATWG `URL` host parser, in every mode (with or without `unicodeSupport`):
+
+* Numeric legacy IPv4 forms (decimal `2130706433`, octal `0177.0.0.1`, hexadecimal `0x7f.1`/`0x7f000001`, shorthand `127.1`) are canonicalized to dotted decimal (`127.0.0.1`).
+* Hosts rejected by the WHATWG host parser set `error`; `normalize()` returns the input unchanged, `equal()` returns `false` and `resolve()` throws.
+* IDN / UTS-46 mapping (punycode conversion, width folding such as `ｅｘａｍｐｌｅ．com` → `example.com`, removal of ignored characters) relies on the runtime's WHATWG `URL` implementation and may differ across Node.js and browser versions. Pin the runtime version if results of `normalize()`/`equal()` must be identical across machines.
 
 ### Parse
 
