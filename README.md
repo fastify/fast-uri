@@ -17,6 +17,8 @@ Malformed authorities, out-of-range ports, and raw leading or trailing C0 contro
 
 Schemes are never percent-decoded. RFC 3986 does not allow percent-encoding in a scheme, so an input such as `%6Aavascript:alert(1)` is reported as malformed (`error: 'URI scheme is malformed.'`) instead of being parsed as `javascript:`. `normalize()` leaves it unchanged, `equal()` returns `false`, and `resolve()` and `serialize()` throw.
 
+For schemes with domain hosts (`http`, `https`, `ws`, `wss`, or any scheme with the `domainHost` option), a host containing an ASCII character that RFC 3986 does not allow in a reg-name (for example `@`, TAB, LF, CR, space, `"`, `<`, `>`, `^`, `` ` ``, `{`, `|`, `}`) is reported as malformed (`error: 'URI host is malformed.'`). It is never passed through a WHATWG URL parser that could treat `@` as a delimiter or strip whitespace. `normalize()` leaves such input unchanged, `equal()` returns `false`, and `resolve()` throws.
+
 *	`scheme` (string)
 	Indicates the scheme that the URI should be treated as, overriding the URI's normal scheme parsing behavior.
 
