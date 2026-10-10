@@ -82,6 +82,8 @@ uri.normalize('http://example.com/a%2Fb')
 
 Reserved path escapes such as `%2F` and `%2E` are preserved as path data during normalization and comparison.
 
+Dot segments in relative references are removed without changing what the reference resolves to: leading `..` segments that cannot be collapsed are kept, and a relative path is never turned into a root-relative one (`a/../b` → `b`, `../x` → `../x`, `x/..` → `./`).
+
 ### Equal
 
 ```js

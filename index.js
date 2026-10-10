@@ -1,6 +1,6 @@
 'use strict'
 
-const { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, serializePathEncoding, normalizeQueryFragmentEncoding, encodeQuery, encodeFragment, encodeHost, isIPv4, nonSimpleDomain } = require('./lib/utils')
+const { normalizeIPv6, removeDotSegments, removeDotSegmentsRelative, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, serializePathEncoding, normalizeQueryFragmentEncoding, encodeQuery, encodeFragment, encodeHost, isIPv4, nonSimpleDomain } = require('./lib/utils')
 const { SCHEMES, getSchemeHandler } = require('./lib/schemes')
 
 const VALID_SCHEME = /^[A-Za-z][A-Za-z0-9+.-]*$/u
@@ -282,7 +282,12 @@ function serialize (cmpts, opts) {
     let s = component.path
 
     if (!options.absolutePath && (!schemeHandler || !schemeHandler.absolutePath)) {
-      s = removeDotSegments(s)
+      // A relative-path reference keeps its unresolvable leading ".." segments
+      // and must never become root-relative (RFC 3986 section 5.2.4 applies to
+      // merged target paths, not to the reference itself).
+      s = component.scheme === undefined && authority === undefined && s[0] !== '/'
+        ? removeDotSegmentsRelative(s)
+        : removeDotSegments(s)
     }
 
     // Dot-segment removal can expose a colon that was not originally in the
