@@ -17,6 +17,8 @@ All of the above functions can accept an additional options argument that is an 
 
 Malformed authorities and out-of-range ports are reported through the parsed component's `error` field. `normalize()` leaves malformed string inputs unchanged, and `equal()` returns `false` when either string input is malformed.
 
+Schemes are never percent-decoded. RFC 3986 does not allow percent-encoding in a scheme, so an input such as `%6Aavascript:alert(1)` is reported as malformed (`error: 'URI scheme is malformed.'`) instead of being parsed as `javascript:`. `normalize()` leaves it unchanged, `equal()` returns `false`, and `resolve()` and `serialize()` throw.
+
 *	`scheme` (string)
 	Indicates the scheme that the URI should be treated as, overriding the URI's normal scheme parsing behavior.
 
