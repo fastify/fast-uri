@@ -77,13 +77,13 @@ test('serialize uses the RFC 3986 path character set without opening escapes', (
   )
   t.equal(
     fastURI.serialize({ path: './a:b/c:d' }),
-    'a%3Ab/c:d',
-    'escapes a first-segment colon exposed by dot-segment removal'
+    './a:b/c:d',
+    'a first-segment colon exposed by dot-segment removal is kept behind a "." segment'
   )
   t.equal(
     fastURI.normalize('./a:b'),
-    'a%3Ab',
-    'normalization keeps a relative path from becoming a scheme'
+    './a:b',
+    'normalization keeps a relative path from becoming a scheme without re-encoding the colon'
   )
   t.equal(
     fastURI.serialize({ path: '/Kſ' }),
