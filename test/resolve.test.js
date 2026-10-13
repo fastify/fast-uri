@@ -85,3 +85,22 @@ test('URI Resolving tolerates malformed fragments', (t) => {
   )
   t.end()
 })
+
+test('URI resolving preserves percent-encoded UTF-8 path segments', (t) => {
+  t.equal(
+    fastURI.resolve('http://host', encodeURIComponent('ыы')),
+    'http://host/%D1%8B%D1%8B',
+    'keeps the issue reproduction as UTF-8 percent-encoding'
+  )
+
+  t.equal(
+    fastURI.resolve(
+      'json-schemer://schema',
+      '1c_list_Document_%D0%A1%D0%B1%D0%BE%D1%80%D0%BA%D0%B0%D0%97%D0%B0%D0%BF%D0%B0%D1%81%D0%BE%D0%B2'
+    ),
+    'json-schemer://schema/1c_list_Document_%D0%A1%D0%B1%D0%BE%D1%80%D0%BA%D0%B0%D0%97%D0%B0%D0%BF%D0%B0%D1%81%D0%BE%D0%B2',
+    'keeps the JSON Schema reference fixture percent-encoded'
+  )
+
+  t.end()
+})
