@@ -36,7 +36,7 @@ test('normalize never turns a relative-path reference into a root or network pat
   t.equal(fastURI.normalize('.//x'), './/x', 'leading empty segment is kept behind "."')
   t.equal(fastURI.normalize('a/..//x'), './/x', 'collapsed prefix does not expose "//"')
   t.equal(fastURI.parse(fastURI.normalize('a/..//x')).host, undefined, 'no authority is introduced')
-  t.equal(fastURI.normalize('./a:b'), 'a%3Ab', 'exposed colon is still escaped')
+  t.equal(fastURI.normalize('./a:b'), './a:b', 'first-segment colon is kept behind a "." segment (RFC 3986 section 4.2)')
   t.equal(fastURI.parse(fastURI.normalize('./a:b')).scheme, undefined, 'no scheme is introduced')
   t.end()
 })
@@ -72,7 +72,7 @@ test('resolving a normalized relative reference matches resolving the original',
 })
 
 test('property: normalization of relative references is resolution-preserving and idempotent', (t) => {
-  const segments = ['a', 'b', '.', '..', '']
+  const segments = ['a', 'b', '.', '..', '', 'a:b']
   // Deterministic linear congruential generator so failures are reproducible.
   let seed = 0x5ec02
   const next = (n) => {
@@ -113,5 +113,30 @@ test('property: normalization of relative references is resolution-preserving an
 
   t.ok(checked > 1000, `checked ${checked} relative references`)
   t.equal(failures, 0, 'no relative reference changed meaning')
+  t.end()
+})
+
+test('normalize does not promote a colon-first relative reference to a scheme (skipEscape)', (t) => {
+  // RFC 3986 section 4.2: a first path segment containing ":" must stay
+  // protected by a leading "./", or it is mistaken for a scheme. Collapsing
+  // the protecting dot segment must not expose the colon. The default path
+  // escapes the colon; with skipEscape the colon is emitted raw and the
+  // reference is reparsed as absolute (scheme "a"), changing its meaning.
+  const colonRefs = ['./a:b', 'a/../a:b']
+  for (const ref of colonRefs) {
+    const normalized = fastURI.normalize(ref, { skipEscape: true })
+    t.equal(
+      fastURI.parse(normalized).scheme,
+      undefined,
+      `${ref} -> ${normalized} must not introduce a scheme`
+    )
+    for (const base of ABSOLUTE_BASES) {
+      t.equal(
+        fastURI.resolve(base, normalized, { skipEscape: true }),
+        fastURI.resolve(base, ref, { skipEscape: true }),
+        `${base} + ${ref}: normalized ${normalized} must resolve the same`
+      )
+    }
+  }
   t.end()
 })
