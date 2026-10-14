@@ -220,7 +220,11 @@ function serialize (cmpts, opts) {
   if (schemeHandler && schemeHandler.serialize) schemeHandler.serialize(component, options)
 
   const hasAuthority = component.userinfo !== undefined || component.host !== undefined || component.port !== undefined
-  const pathNoScheme = !options.skipEscape && component.scheme === undefined && !hasAuthority
+  // A reference with no emitted scheme is path-noscheme: a bare ':' in its
+  // first path segment would reparse as a scheme (RFC 3986 3.3/4.2). Enforced
+  // under skipEscape too (resolve()), so the reapply below gates on this flag.
+  const schemelessReference = (component.scheme === undefined || options.reference === 'suffix') && !hasAuthority
+  const pathNoScheme = !options.skipEscape && schemelessReference
 
   if (component.path !== undefined) {
     if (!options.skipEscape) {
@@ -263,7 +267,7 @@ function serialize (cmpts, opts) {
     // Dot-segment removal can expose a colon that was not originally in the
     // first segment (for example, "./a:b"). Reapply path-noscheme encoding so
     // the serialized relative reference cannot be reparsed as a URI scheme.
-    if (pathNoScheme) {
+    if (schemelessReference) {
       s = serializePathEncoding(s, true)
     }
 
