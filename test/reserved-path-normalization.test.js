@@ -107,3 +107,31 @@ test('equal distinguishes escaped reserved path data from literal syntax', (t) =
   )
   t.end()
 })
+
+// A suffix reference never emits its scheme token, so it is a scheme-less
+// (path-noscheme) reference: a bare ':' in its first path segment must be
+// escaped, or the serialized output reparses as an absolute URI with a scheme.
+// @see https://github.com/fastify/fast-uri/security/advisories/GHSA-333x-w4r6-6crp
+test('suffix reference escapes a first-segment colon instead of emitting a scheme', (t) => {
+  const dangerous = /^(?:javascript|data|vbscript):/i
+  const options = { reference: 'suffix', scheme: 'x' }
+
+  for (const input of ['javascript:alert(1)', '%6Aavascript:alert(1)', 'data:text/html,x', 'vbscript:msgbox(1)']) {
+    t.notOk(dangerous.test(fastURI.normalize(input, options)), `${input} normalizes to an inert reference`)
+  }
+
+  t.equal(
+    fastURI.normalize('javascript:alert(1)', options),
+    'javascript%3Aalert(1)',
+    'escapes the leading-segment colon to %3A'
+  )
+  t.notOk(
+    dangerous.test(fastURI.resolve('https://a.example/base/', '%6Aavascript:alert(1)', { reference: 'suffix' })),
+    'resolve in suffix mode does not emit a live scheme'
+  )
+
+  // legitimate suffix usage is unchanged
+  t.equal(fastURI.normalize('path/to/file', options), 'path/to/file', 'plain path unchanged')
+  t.equal(fastURI.normalize('a/b:c', options), 'a/b:c', 'colon in a later segment stays literal')
+  t.end()
+})
