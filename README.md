@@ -27,6 +27,8 @@ For schemes with domain hosts (`http`, `https`, `ws`, `wss`, or any scheme with 
 *	`reference` (string)
 	If set to `"suffix"`, it indicates that the URI is in the suffix format and the parser will use the option's `scheme` property to determine the URI's scheme.
 
+	A suffix reference is written without its scheme and without the `//` authority marker (RFC 3986 section 4.5). Such a reference is inherently ambiguous: an authority component cannot always be distinguished from a path. When the input carries an authority of the form `host:port` (for example `//javascript:80/x`) or a userinfo containing a colon, the serialized suffix output can begin with text that reparses as a URI scheme (for example `javascript:80/x`). Do not treat suffix output as a trusted absolute URL, and do not render it or use it in a scheme allowlist without first validating it with `parse()`. If you need an unambiguous result, use the default (non-suffix) serialization.
+
 *	`tolerant` (boolean, false)
 	If set to `true`, the parser will relax URI resolving rules.
 
