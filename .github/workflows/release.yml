@@ -11,6 +11,14 @@ on:
           - patch
           - minor
           - major
+          - prepatch
+          - preminor
+          - premajor
+          - prerelease
+      preid:
+        description: 'Prerelease identifier (e.g. rc), used by the pre* bump types'
+        required: false
+        type: string
 
 permissions: {}
 
@@ -19,6 +27,8 @@ jobs:
     permissions:
       id-token: write # required for npm provenance via OIDC
       contents: write # required to push the release commit and the tag
-    uses: fastify/workflows/.github/workflows/reusable-release.yml@b1a11bce713bc857e52b2231fec3c89071ad3135
+    uses: fastify/workflows/.github/workflows/reusable-release.yml@b0a2ab2d8259b6bd574b804cd6874bbd75c3577c
     with:
       semver: ${{ inputs.semver }}
+      preid: ${{ inputs.preid }}
+      dist-tag: ${{ startsWith(inputs.semver, 'pre') && 'next' || 'latest' }}
