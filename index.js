@@ -416,6 +416,18 @@ function hasMalformedComponentPercentEncoding (matches) {
     hasMalformedPercentEncoding(matches[8])
 }
 
+function hasSuffixAuthority (uri) {
+  const authorityEnd = uri.search(/[/?#]/)
+  const authority = authorityEnd === -1 ? uri : uri.slice(0, authorityEnd)
+  const at = authority.lastIndexOf('@')
+  const hostPort = authority.slice(at + 1)
+
+  if (hostPort[0] === '[') return true
+
+  const colon = hostPort.lastIndexOf(':')
+  return colon === -1 || /^\d*$/u.test(hostPort.slice(colon + 1))
+}
+
 function parseWithStatus (uri, opts) {
   const options = Object.assign({}, opts)
   const parsed = {
@@ -434,7 +446,17 @@ function parseWithStatus (uri, opts) {
   let malformedIPLiteral = false
   let malformedScheme = false
   let isIP = false
-  if (options.reference === 'suffix') uri = (options.scheme ? options.scheme + ':' : '') + '//' + uri
+  if (options.reference === 'suffix') {
+    if (options.scheme) {
+      // v2 suffix references traditionally omit both the scheme and the "//"
+      // authority marker. Preserve that interpretation for valid authorities,
+      // but treat a non-numeric host-port suffix as a path. Otherwise inputs
+      // such as "javascript:alert(1)" are emitted as live schemes.
+      uri = options.scheme + (hasSuffixAuthority(uri) ? '://' : ':') + uri
+    } else {
+      uri = '//' + uri
+    }
+  }
 
   // A literal backslash (U+005C) is not a valid RFC 3986 URI character and is
   // not an authority delimiter. Reject it in the authority rather than

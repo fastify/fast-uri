@@ -114,14 +114,19 @@ test('property: normalization of relative references is resolution-preserving an
   t.end()
 })
 
-test('suffix normalization preserves relative path meaning', (t) => {
-  const options = { reference: 'suffix', scheme: 'x' }
+test('suffix parsing preserves v2 authority semantics', (t) => {
+  const options = { reference: 'suffix', scheme: 'http' }
   for (const [input, expected] of [
-    ['a/../b', 'b'],
-    ['x/..', './'],
-    ['a/../a:b', './a:b']
+    ['example.com/path', { host: 'example.com', path: '/path' }],
+    ['example.com:8080/path', { host: 'example.com', port: 8080, path: '/path' }],
+    ['user:pass@example.com/path', { userinfo: 'user:pass', host: 'example.com', path: '/path' }]
   ]) {
-    t.equal(fastURI.normalize(input, options), expected, `${input} -> ${expected}`)
+    const parsed = fastURI.parse(input, options)
+    for (const [key, value] of Object.entries(expected)) {
+      t.equal(parsed[key], value, `${input} preserves ${key}`)
+    }
+    t.equal(fastURI.normalize(input, options), input, `${input} normalizes unchanged`)
+    t.equal(fastURI.serialize(parsed, options), input, `${input} round-trips`)
   }
   t.end()
 })
