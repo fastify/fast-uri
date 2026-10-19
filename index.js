@@ -126,14 +126,17 @@ function resolveComponents (base, relative, options, skipNormalization) {
         if (relative.path.charAt(0) === '/') {
           target.path = removeDotSegments(relative.path)
         } else {
-          if ((base.userinfo !== undefined || base.host !== undefined || base.port !== undefined) && !base.path) {
+          const baseHasAuthority = base.userinfo !== undefined || base.host !== undefined || base.port !== undefined
+          if (baseHasAuthority && !base.path) {
             target.path = '/' + relative.path
           } else if (!base.path) {
             target.path = relative.path
           } else {
             target.path = base.path.slice(0, base.path.lastIndexOf('/') + 1) + relative.path
           }
-          target.path = removeDotSegments(target.path)
+          target.path = base.scheme === undefined && !baseHasAuthority && target.path[0] !== '/'
+            ? removeDotSegmentsRelative(target.path)
+            : removeDotSegments(target.path)
         }
         target.query = relative.query
       }
@@ -228,7 +231,7 @@ function serialize (cmpts, opts) {
       // A relative-path reference keeps its unresolvable leading ".." segments
       // and must never become root-relative (RFC 3986 section 5.2.4 applies to
       // merged target paths, not to the reference itself).
-      s = components.scheme === undefined && authority === undefined && s[0] !== '/'
+      s = schemelessReference && s[0] !== '/'
         ? removeDotSegmentsRelative(s)
         : removeDotSegments(s)
     }
