@@ -89,9 +89,9 @@ test('property: normalization of relative references is resolution-preserving an
     const parts = []
     for (let j = 0; j < length; j++) parts.push(segments[next(segments.length)])
     const ref = parts.join('/')
-    // Only relative-path references: empty refs and refs starting with "/"
-    // are not affected by this change ("//" would also introduce an authority).
-    if (ref === '' || ref[0] === '/') continue
+    // Only relative-path references: empty refs, refs starting with "/", and
+    // refs whose first segment contains ":" are not affected by this change.
+    if (ref === '' || ref[0] === '/' || fastURI.parse(ref).scheme !== undefined) continue
 
     checked++
     const normalized = fastURI.normalize(ref)
