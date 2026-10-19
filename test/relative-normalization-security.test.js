@@ -10,6 +10,8 @@ const ABSOLUTE_BASES = [
   'http://h/p/q/'
 ]
 
+const RELATIVE_BASES = ['', 'base', 'relative/base']
+
 test('normalize keeps the meaning of relative-path references', (t) => {
   const cases = [
     ['a/../b', 'b'],
@@ -57,7 +59,7 @@ test('equal does not alias relative references with different targets', (t) => {
 })
 
 test('resolving a normalized relative reference matches resolving the original', (t) => {
-  for (const base of ABSOLUTE_BASES) {
+  for (const base of [...ABSOLUTE_BASES, ...RELATIVE_BASES]) {
     for (const ref of ['a/../b', 'x/..', '../x', './../x', 'a/b/../../..', '.', '..', './/x']) {
       t.equal(
         fastURI.resolve(base, fastURI.normalize(ref)),
@@ -113,6 +115,18 @@ test('property: normalization of relative references is resolution-preserving an
 
   t.ok(checked > 1000, `checked ${checked} relative references`)
   t.equal(failures, 0, 'no relative reference changed meaning')
+  t.end()
+})
+
+test('suffix normalization preserves relative path meaning', (t) => {
+  const options = { reference: 'suffix', scheme: 'x' }
+  for (const [input, expected] of [
+    ['a/../b', 'b'],
+    ['x/..', './'],
+    ['a/../a:b', './a:b']
+  ]) {
+    t.equal(fastURI.normalize(input, options), expected, `${input} -> ${expected}`)
+  }
   t.end()
 })
 
