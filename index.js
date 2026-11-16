@@ -87,12 +87,14 @@ function resolve (baseURI, relativeURI, options) {
   const resolvedSchemeHandler = getSchemeHandler((options && options.scheme) || resolved.scheme)
   const resolvedHost = resolved.host
   // Inputs are parsed scheme-neutrally during resolution, so enforce the final
-  // HTTP scheme's required host before serializing an invalid HTTP URI.
-  if (
-    (resolved.scheme === 'http' || resolved.scheme === 'https') &&
-    !resolvedHost
-  ) {
-    throw new Error('HTTP URIs must have a host.')
+  // HTTP or WebSocket scheme's required host before serializing an invalid URI.
+  if (!resolvedHost) {
+    if (resolved.scheme === 'http' || resolved.scheme === 'https') {
+      throw new Error('HTTP URIs must have a host.')
+    }
+    if (resolved.scheme === 'ws' || resolved.scheme === 'wss') {
+      throw new Error('WebSocket URIs must have a host.')
+    }
   }
   const resolvedHostIsIP = resolvedHost !== undefined && resolvedHost !== '' &&
     (isIPv4(resolvedHost) || normalizeIPv6(resolvedHost).isIPV6)
