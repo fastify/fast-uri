@@ -89,6 +89,17 @@ test('resolve rejects an empty host for WebSocket results', (t) => {
   )
 })
 
+test('equal compares hostless WebSocket URIs like hostless HTTP URIs', (t) => {
+  // A missing host is a scheme-level error, not a syntactic one, so equal()
+  // still compares the normalized strings, matching http and https.
+  for (const uri of ['ws:/a', 'wss:/a', 'ws:///a', 'wss:a', 'http:/a', 'https:///a']) {
+    t.ok(fastURI.parse(uri).error, `${uri} reports an error`)
+    t.equal(fastURI.equal(uri, uri), true, `${uri} equals itself`)
+  }
+  t.equal(fastURI.equal('ws:/a', 'ws:/b'), false, 'different hostless paths are not equal')
+  t.end()
+})
+
 test('structured WebSocket components still serialize without a host', (t) => {
   t.equal(fastURI.serialize({ scheme: 'ws', resourceName: '/chat' }), 'ws:/chat')
   t.equal(fastURI.serialize({ scheme: 'wss' }), 'wss:')
