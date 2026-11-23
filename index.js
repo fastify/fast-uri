@@ -1,6 +1,6 @@
 'use strict'
 
-const { normalizeIPv6, removeDotSegments, removeDotSegmentsRelative, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, serializePathEncoding, normalizeQueryFragmentEncoding, encodeQuery, encodeFragment, encodeHost, isIPv4, nonSimpleDomain } = require('./lib/utils')
+const { normalizeIPv6, removeDotSegments, removeDotSegmentsRelative, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, serializePathEncoding, normalizeQueryFragmentEncoding, encodeQuery, encodeFragment, encodeHost, isIPv4, nonSimpleDomain, fastLowerAsciiHost } = require('./lib/utils')
 const { SCHEMES, getSchemeHandler } = require('./lib/schemes')
 
 const VALID_SCHEME = /^[A-Za-z][A-Za-z0-9+.-]*$/u
@@ -447,6 +447,17 @@ function canonicalizeHost (parsed, options, schemeHandler, isIP) {
     !bracketedIPLiteral &&
     nonSimpleDomain(parsed.host)
   ) {
+    // `nonSimpleDomain` flags any host with a digit or an uppercase character,
+    // but `new URL('http://' + host).hostname` is exactly the ASCII-lowercased
+    // input for most of them ("mail2.example.org", "Example.COM"). A lowercase
+    // ASCII host of identity characters whose final label is not an IPv4 number
+    // needs no URL construction. Every other host keeps the WHATWG path.
+    const fastHost = fastLowerAsciiHost(parsed.host)
+    if (fastHost !== undefined) {
+      parsed.host = fastHost
+      return false
+    }
+
     let url
     try {
       url = new URL('http://' + parsed.host)
