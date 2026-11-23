@@ -217,6 +217,13 @@ function resolveComponent (base, relative, options, skipNormalization) {
  * @returns {boolean}
  */
 function equal (uriA, uriB, options) {
+  // Identical inputs normalize identically, so one side decides the result.
+  // Malformed input still yields undefined, which keeps the documented
+  // `equal(malformed, malformed) === false` contract.
+  if (uriA === uriB) {
+    return normalizeComparableURI(uriA, options) !== undefined
+  }
+
   const normalizedA = normalizeComparableURI(uriA, options)
   const normalizedB = normalizeComparableURI(uriB, options)
 
@@ -253,8 +260,13 @@ function serialize (cmpts, opts) {
   const options = Object.assign({}, opts)
   const uriTokens = []
 
+  // Reference decoded scheme. A scheme handler may replace it, and then the
+  // replacement must be validated again before it is emitted.
+  let validatedScheme
+
   if (component.scheme) {
     component.scheme = validateScheme(component.scheme)
+    validatedScheme = component.scheme
   }
 
   // find scheme handler
@@ -279,8 +291,12 @@ function serialize (cmpts, opts) {
   }
 
   if (options.reference !== 'suffix' && component.scheme) {
-    // Scheme handlers may replace the scheme during serialization.
-    component.scheme = validateScheme(component.scheme)
+    // A scheme handler may replace the scheme during serialization, so the
+    // replacement needs validation. A scheme that did not change is already
+    // validated above.
+    if (component.scheme !== validatedScheme) {
+      component.scheme = validateScheme(component.scheme)
+    }
     uriTokens.push(component.scheme, ':')
   }
 
