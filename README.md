@@ -19,6 +19,8 @@ Schemes are never percent-decoded. RFC 3986 does not allow percent-encoding in a
 
 For schemes with domain hosts (`http`, `https`, `ws`, `wss`, or any scheme with the `domainHost` option), a host containing an ASCII character that RFC 3986 does not allow in a reg-name (for example `@`, TAB, LF, CR, space, `"`, `<`, `>`, `^`, `` ` ``, `{`, `|`, `}`) is reported as malformed (`error: 'URI host is malformed.'`). It is never passed through a WHATWG URL parser that could treat `@` as a delimiter or strip whitespace. `normalize()` leaves such input unchanged, `equal()` returns `false`, and `resolve()` throws.
 
+A domain host or a `mailto` recipient domain whose final label is an IPv4 number is converted with the WHATWG IPv4 parser. This includes a decimal label, a `0x` label with zero or more hex digits, and one trailing dot. For example, `http://0x7f/` becomes `http://0.0.0.127/` and `mailto:user@127.1` becomes `mailto:user@127.0.0.1`. A final label of those shapes that cannot be converted reports an error. Only one trailing dot is removed, so `1.` is an IPv4 number and `1..` is a name.
+
 *	`scheme` (string)
 	Indicates the scheme that the URI should be treated as, overriding the URI's normal scheme parsing behavior.
 
