@@ -532,6 +532,31 @@ function isHostOnlyURL (url) {
 }
 
 /**
+ * Whether a backslash, TAB, LF or CR appears before the end of the authority.
+ * It can return true for input that the authority guards accept, but it never
+ * returns false for input that they reject.
+ * @param {string} uri
+ * @returns {boolean}
+ */
+function hasAuthorityControlChar (uri) {
+  // 0: scheme, 1: separators, 2: authority
+  let state = 0
+  for (let i = 0; i < uri.length; i++) {
+    const code = uri.charCodeAt(i)
+    if (code === 92 || code === 9 || code === 10 || code === 13) return true // '\\', TAB, LF, CR
+    if (code === 63 || code === 35) return false // '?', '#'
+    if (state === 0) {
+      if (code === 58 || code === 47) state = 1 // ':', '/'
+    } else if (state === 1) {
+      if (code !== 47) state = 2
+    } else if (code === 47) {
+      return false
+    }
+  }
+  return false
+}
+
+/**
  * @param {string} uri
  * @param {import('./types/index').Options} [opts]
  * @returns {{ parsed: import('./types/index').URIComponent, malformedAuthorityOrPort: boolean, malformedReferenceEdge: boolean, malformedPercentEncoding: boolean, malformedSchemeSpecific: boolean, malformedHost: boolean, malformedScheme: boolean }}
@@ -578,7 +603,10 @@ function parseWithStatus (uri, opts) {
   // act as a host delimiter here while Node's native URL parses a different
   // host (SSRF / redirect / origin-allowlist bypass). Percent-encoded %5C is
   // untouched and remains valid encoded data.
-  const authorityMatch = uri.match(AUTHORITY_PREFIX)
+  // Both guards below read only the scheme, the separators and the authority,
+  // and can only fire on a backslash, TAB, LF or CR there.
+  const mayHaveBadAuthority = hasAuthorityControlChar(uri)
+  const authorityMatch = mayHaveBadAuthority ? uri.match(AUTHORITY_PREFIX) : null
   if (authorityMatch !== null && authorityMatch[1].indexOf('\\') !== -1) {
     parsed.error = 'URI authority must not contain a literal backslash.'
     malformedAuthorityOrPort = true
@@ -590,7 +618,7 @@ function parseWithStatus (uri, opts) {
   // Node strips) means the authority fast-uri parses differs from the one Node's
   // URL resolves. Reject rather than rewrite, mirroring the literal-backslash
   // guard above. Percent-encoded forms (%5C, %09) are untouched, valid data.
-  const introducerMatch = uri.match(AUTHORITY_INTRODUCER_REGION)
+  const introducerMatch = mayHaveBadAuthority ? uri.match(AUTHORITY_INTRODUCER_REGION) : null
   if (introducerMatch !== null) {
     const region = introducerMatch[1]
     const normalizedRegion = region.replace(/[\t\n\r]/g, '')
