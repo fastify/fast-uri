@@ -63,10 +63,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
+        # The Playwright version used on v3.x does not support Ubuntu 26.04.
+        os: ['ubuntu-24.04', 'windows-latest', 'macos-latest']
         browser: ['chromium', 'firefox', 'webkit']
         exclude:
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             browser: webkit
     permissions:
       contents: read
