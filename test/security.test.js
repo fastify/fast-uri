@@ -232,6 +232,20 @@ test('resolve throws when the final scheme cannot canonicalise the host', (t) =>
   })
 })
 
+test('resolve keeps an encoded ASCII host the WHATWG parser rejects', (t) => {
+  t.plan(2)
+  t.equal(
+    fastURI.resolve('http://trusted.example/', '//a%00b.example/'),
+    'http://a%00b.example/',
+    'percent escapes in an ASCII reg-name are data'
+  )
+  t.throws(
+    () => fastURI.resolve('http://trusted.example/', '//a%25\u0080.example/'),
+    /Host's domain name can not be converted to ASCII/,
+    'a raw non-ASCII host still fails closed'
+  )
+})
+
 test('parse rejects a literal backslash in the authority as malformed (RFC 3986)', (t) => {
   // Regression for the host-confusion bypass: a literal "\" is invalid RFC 3986
   // syntax and must be flagged malformed, not silently rewritten. Otherwise "\"
