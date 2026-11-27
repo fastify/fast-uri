@@ -37,9 +37,21 @@ A domain host or a `mailto` recipient domain whose final label is an IPv4 number
 
 *	`unicodeSupport` (boolean, false)
 	If set to `true`, the parser will unescape non-ASCII characters in the parsed output as per [RFC 3987](https://www.ietf.org/rfc/rfc3987.txt).
+	The option changes the reported form of a domain host only. The host is still validated, and an IPv4 result is still dotted decimal. See [Host canonicalization](#host-canonicalization).
 
 *	`domainHost` (boolean, false)
-	If set to `true`, the library will treat the `host` component as a domain name, and convert IDNs (International Domain Names) as per [RFC 5891](https://www.ietf.org/rfc/rfc5891.txt).
+	If set to `true`, the library will treat the `host` component as a domain name, and convert IDNs (International Domain Names) as per [RFC 5891](https://www.ietf.org/rfc/rfc5891.txt). This is the default for `http`, `https`, `ws` and `wss`. See [Host canonicalization](#host-canonicalization).
+
+### Host canonicalization
+
+For domain-host schemes (`http`, `https`, `ws`, `wss`, or any scheme with `domainHost: true`), the host is validated and canonicalized with the runtime's WHATWG `URL` host parser in both modes. The `unicodeSupport` option changes the reported host form only.
+
+* A host that the WHATWG host parser rejects sets `error` in both modes. Then `normalize()` returns the input unchanged, `equal()` returns `false` and `resolve()` throws.
+* A host whose final label is an IPv4 number becomes dotted decimal in both modes. The final-label rule is the one above.
+* Any other host keeps the ASCII form without `unicodeSupport`. With `unicodeSupport` it keeps the lowercased Unicode form, so an IRI stays readable.
+* `equal()` always compares domain hosts by their ASCII form. A Unicode, width-variant or punycode spelling of one host therefore compares equal in both modes. `parse()`, `normalize()` and `serialize()` keep their own output form.
+
+IDN and UTS-46 mapping (punycode conversion, width folding such as `ｅｘａｍｐｌｅ．com` → `example.com`, removal of ignored characters) uses the runtime's WHATWG `URL` implementation. The result can differ between Node.js and browser versions. Pin the runtime version when `normalize()` or `equal()` must give the same result on every machine.
 
 ### Parse
 
