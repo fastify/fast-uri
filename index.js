@@ -9,6 +9,7 @@ const MALFORMED_HOST_ERROR = 'URI host is malformed.'
 // ASCII characters outside the RFC 3986 reg-name set (unreserved, sub-delims
 // and "%" for pct-encoded): C0 controls, space, DEL, and "#/:<>?@[\]^`{|}.
 const FORBIDDEN_DOMAIN_HOST_CHARACTER = /[\0-\x20"#/:<>?@[\\\]^`{|}\x7F]/u
+const NON_ASCII_CHARACTER = /[^\0-\x7F]/u
 
 /**
  * RFC 3986 section 3.1 does not allow percent-encoding in a scheme, so the
@@ -95,7 +96,7 @@ function resolve (baseURI, relativeURI, options) {
   // parser can reject them even though fast-uri preserves them safely as RFC
   // 3986 data. A raw non-ASCII host must still fail closed if conversion fails.
   const encodedASCIIHost = resolvedHost && resolvedHost.indexOf('%') !== -1 &&
-    !/\P{ASCII}/u.test(resolvedHost)
+    !NON_ASCII_CHARACTER.test(resolvedHost)
   if (resolved.error && !encodedASCIIHost) {
     throw new Error(resolved.error)
   }
